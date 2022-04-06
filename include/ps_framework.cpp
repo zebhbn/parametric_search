@@ -63,7 +63,7 @@ bool ps_framework::PSFramework<T>::isInInterval(double x){
 }
 
 template <typename T>
-void ps_framework::PSFramework<T>::spawn(co_task<void> task) {
+void ps_framework::PSFramework<T>::spawn(co_task<void> *task) {
     schedular->spawn(task);
 }
 
@@ -72,6 +72,12 @@ void ps_framework::PSFramework<T>::compare(T *, T *, cmp_res *) {
     // TODO: implement this
     assert(false);
 }
+
+//template <typename T>
+//void ps_framework::PSFramework<T>::resolveComparisons() {
+//    // TODO: implement this
+//    assert(false);
+//}
 
 // The value returned means the following
 // when comparing the functions at lambda*

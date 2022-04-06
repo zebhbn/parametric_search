@@ -6,7 +6,7 @@
 
 
 namespace ps_framework {
-// TODO: implement done method
+// DONE: implement done method
     template<typename T>
     struct co_task {
         struct promise_type {
@@ -47,6 +47,10 @@ namespace ps_framework {
 
         int result() const {
             return handle_.promise().value_;
+        }
+
+        bool done() const noexcept {
+            return handle_.done();
         }
 
         std::coroutine_handle<promise_type> handle_{nullptr};

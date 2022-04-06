@@ -32,7 +32,9 @@ namespace ps_framework {
         // For testing purposes
         PSFramework();
 
-        void spawn(co_task<void>);
+        void spawn(co_task<void>*);
+
+//        void resolveComparisons();
 
         void compare(T *, T *, cmp_res *);
 

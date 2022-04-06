@@ -22,19 +22,23 @@ namespace ps_framework {
     public:
         virtual double getCriticalValue(T *, T *) = 0;
 
-        virtual cmp_res compare(T *, T *, cmp_res) = 0;
+        virtual cmp_res getCompareResult(T *, T *, cmp_res) = 0;
     };
 
     class ISchedular {
     public:
-        virtual void spawn(co_task<void>) = 0;
+        virtual void spawn(co_task<void>*) = 0;
+        virtual void run() = 0;
+    };
+
+    class IComparisonResolver {
+    public:
+        virtual void resolve() = 0;
     };
 
     class IPSCore {
     public:
-        virtual void runSeqAlgo(
-                std::vector<double> *
-        ) = 0;
+        virtual void runCompareList(std::vector<criticalValueResult>*) = 0;
     };
 
 }
