@@ -18,7 +18,7 @@ namespace ps_framework {
         // For testing purposes
 //        PSQuicksort();
 
-        void sort(std::vector<T> *);
+        void sort();
 
     private:
         co_task<int> partition(int, int);

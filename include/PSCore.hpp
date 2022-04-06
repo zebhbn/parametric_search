@@ -8,7 +8,7 @@
 #include "ps_interfaces.hpp"
 
 namespace ps_framework {
-    class PSCore : ps_framework::IPSCore {
+    class PSCore : public ps_framework::IPSCore {
     public:
         PSCore(ISeqAlgo*);
         PSCore(ISeqAlgo*, double, double);

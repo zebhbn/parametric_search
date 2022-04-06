@@ -100,20 +100,44 @@ double nonPsVersion(int numLines) {
     // Lambda star is now the root of the median line
     double star = 123123123;
     for (int i = 0; i<number_of_lines;i++){
-        if (seqAlgo.compare(lines[i].getRoot())==0)
+        if (seqAlgo.compare(lines[i].getRoot())==ps_framework::EqualTo)
             star = lines[i].getRoot();
     }
     return star;
+}
+double psVersion(int numLines) {
+    // Generate lines
+    int number_of_lines = numLines;
+    std::vector<ps_framework::LinearFunction> lines;
+    lines.reserve(number_of_lines);
+    int a = 1;
+    int b = 0;
+    for (size_t i=0; i<number_of_lines; ++i){
+        a = (a*i) % number_of_lines + 1;
+        b = (b*i) % number_of_lines - a;
+        // std::cout << "a=" << a << " b=" << b << std::endl;
+//        lines.push_back(FunctionBase((double)a,(double)b));
+
+        lines.push_back(ps_framework::LinearFunction((double)a,(double)b));
+    }
+    // Instantiate everything
+    SeqAlgoMedianLines seqAlgo = SeqAlgoMedianLines(&lines);
+    auto psCore = ps_framework::PSCore(&seqAlgo);
+    auto linComparer = ps_framework::LinearFunctionComparer();
+    auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
+    auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&schedular, &lines);
+    quickSort.sort();
+    return lines[number_of_lines/2].getRoot();
 }
 
 
 
 int main(){
     int numLines = 101;
-//    double lambda_star = test(numLines);
+    double lambda_star = psVersion(numLines);
     double test_lambda_star = nonPsVersion(numLines);
 //    // Output result
-//    std::cout << "lambda* = " << lambda_star << std::endl;
+    std::cout << "lambda* = " << lambda_star << std::endl;
     std::cout << "real lambda* = " << test_lambda_star << std::endl;
 
 

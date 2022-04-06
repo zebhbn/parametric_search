@@ -12,7 +12,7 @@
 
 namespace ps_framework {
     template <typename T>
-    class Schedular : ps_framework::ISchedular<T> {
+    class Schedular : public ps_framework::ISchedular<T> {
     public:
         Schedular(IPSCore *core, IComparer<T>* cmpr);
         void spawn(ps_framework::co_task<void>*);

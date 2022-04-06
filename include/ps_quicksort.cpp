@@ -16,6 +16,13 @@ ps_framework::PSQuicksort<T>::PSQuicksort(ISchedular<T> *schl, std::vector<T> *v
     res->reserve(arr->size());
 }
 
+template <typename T>
+void ps_framework::PSQuicksort<T>::sort() {
+    co_task<void> initTask = quicksort(arr, 0, arr->size()-1);
+    schedular->spawn(&initTask);
+    schedular->run();
+}
+
 // For testing purposes
 //template <typename T>
 //ps_framework::PSQuicksort<T>::PSQuicksort() {};

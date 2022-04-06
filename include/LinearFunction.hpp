@@ -21,7 +21,7 @@ namespace ps_framework {
         }
     };
 
-    class LinearFunctionComparer : ps_framework::IComparer<LinearFunction> {
+    class LinearFunctionComparer : public ps_framework::IComparer<LinearFunction> {
         double getCriticalValue(LinearFunction*, LinearFunction*);
         cmp_res getCompareResult(LinearFunction*, LinearFunction*, cmp_res);
     };
