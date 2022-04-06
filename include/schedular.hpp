@@ -12,10 +12,10 @@
 
 namespace ps_framework {
     template <typename T>
-    class Schedular : ps_framework::ISchedular {
+    class Schedular : ps_framework::ISchedular<T> {
     public:
         Schedular(IPSCore *core, IComparer<T>* cmpr);
-        void spawn(ps_framework::co_task<void>*) override;
+        void spawn(ps_framework::co_task<void>*);
         void run();
         void addComparison(T*, T*, cmp_res*);
     private:
@@ -39,4 +39,4 @@ namespace ps_framework {
 }
 
 
-#endif TEST_SCHEDULAR_HPP
+#endif //TEST_SCHEDULAR_HPP

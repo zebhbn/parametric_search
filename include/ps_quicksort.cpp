@@ -8,17 +8,17 @@
 // Quicksort inspired by https://www.geeksforgeeks.org/quick-sort/
 
 template <typename T>
-ps_framework::PSQuicksort<T>::PSQuicksort(PSFramework<T> *psfw, std::vector<T> *vec){
+ps_framework::PSQuicksort<T>::PSQuicksort(ISchedular<T> *schl, std::vector<T> *vec){
     arr = vec;
-    psframe = psfw;
+    schedular = schl;
     // Initialize the result array
     res = new std::vector<cmp_res>();
     res->reserve(arr->size());
 }
 
 // For testing purposes
-template <typename T>
-ps_framework::PSQuicksort<T>::PSQuicksort() {};
+//template <typename T>
+//ps_framework::PSQuicksort<T>::PSQuicksort() {};
 
 template <typename T>
 void ps_framework::PSQuicksort<T>::swap(int i, int j) {
@@ -36,7 +36,8 @@ ps_framework::co_task<int> ps_framework::PSQuicksort<T>::partition(int low, int 
     int i = (low-1);
 
     for (int j = low; j <= high; j++) {
-        psframe->compare(&arr[j], &pivot, &res[j]);
+//        psframe->compare(&arr[j], &pivot, &res[j]);
+        schedular->addComparison(&arr[j], &pivot, &res[j]);
     }
     // All comparisons have been requested
     // return control
@@ -81,8 +82,8 @@ ps_framework::co_task<void> ps_framework::PSQuicksort<T>::quicksort(int low, int
         co_task<void> recTask2 = quicksort(arr, pivot + 1, high);
 
         // Spawn them both
-        psframe->spawn(recTask1);
-        psframe->spawn(recTask2);
+        schedular->spawn(recTask1);
+        schedular->spawn(recTask2);
 
     }
 

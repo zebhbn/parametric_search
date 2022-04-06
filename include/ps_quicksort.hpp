@@ -10,12 +10,13 @@ namespace ps_framework {
     class PSQuicksort {
     public:
         PSQuicksort(
-                PSFramework<T> *psfw,
+//                PSFramework<T> *psfw,
+                ISchedular<T> *schedular,
                 std::vector<T> *vec
         );
 
         // For testing purposes
-        PSQuicksort();
+//        PSQuicksort();
 
         void sort(std::vector<T> *);
 
@@ -26,7 +27,8 @@ namespace ps_framework {
 
         void swap(int, int);
 
-        PSFramework<T> *psframe;
+//        PSFramework<T> *psframe;
+        ISchedular<T> *schedular;
         std::vector<T> *arr;
         std::vector<cmp_res> *res;
     };

@@ -25,9 +25,11 @@ namespace ps_framework {
         virtual cmp_res getCompareResult(T *, T *, cmp_res) = 0;
     };
 
+    template <typename T>
     class ISchedular {
     public:
         virtual void spawn(co_task<void>*) = 0;
+        virtual void addComparison(T*, T*, cmp_res*) = 0;
         virtual void run() = 0;
     };
 

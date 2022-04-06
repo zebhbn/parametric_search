@@ -14,7 +14,7 @@ namespace ps_framework {
                 IParAlgo *,
                 IComparer<T> *,
                 ISeqAlgo *,
-                ISchedular *,
+                ISchedular<T> *,
                 IPSCore *
         );
 
@@ -22,7 +22,7 @@ namespace ps_framework {
                 IParAlgo *,
                 IComparer<T> *,
                 ISeqAlgo *,
-                ISchedular *,
+                ISchedular<T> *,
                 IPSCore *,
                 double,
                 double
@@ -42,7 +42,7 @@ namespace ps_framework {
         IParAlgo *parAlgo;
         IComparer<T> *comparer;
         ISeqAlgo *seqAlgo;
-        ISchedular *schedular;
+        ISchedular<T> *schedular;
         IPSCore *psCore;
 
         // The start of the interval where we know lambda* is in, (e)

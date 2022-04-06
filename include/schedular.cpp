@@ -3,6 +3,7 @@
 //
 
 #include "schedular.hpp"
+#include <cmath>
 
 
 template <typename T>
@@ -57,6 +58,8 @@ void ps_framework::Schedular<T>::computeCriticalValues(std::vector<criticalValue
                 comparisonList[i].elm1,
                 comparisonList[i].elm2
                 );
+        if (std::isnan(criticalValue))
+            return;
         // Store critical value alongside
         // index
         struct criticalValueResult cvr = {
