@@ -10,7 +10,7 @@ namespace ps_framework {
         EqualTo,
         GreaterThan,
 
-        // Added to make unresolved comparisons posible
+        // Added to make unresolved comparisons possible
         // probably not the best solution...
         Unresolved
     };

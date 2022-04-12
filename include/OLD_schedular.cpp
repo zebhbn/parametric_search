@@ -3,6 +3,7 @@
 //
 
 #include "schedular.hpp"
+#include "LinearFunction.hpp"
 #include <cmath>
 
 
@@ -104,7 +105,7 @@ void ps_framework::Schedular<T>::resolveComparisons() {
 }
 
 template <typename T>
-void ps_framework::Schedular<T>::spawn(ps_framework::co_task<void> * task) {
+void ps_framework::Schedular<T>::spawn(ps_framework::co_task_void *task) {
     // Add the co_task to active tasks queue
     activeTasks.push(task);
 }
@@ -114,4 +115,6 @@ void ps_framework::Schedular<T>::addComparison(T *elm1, T *elm2, cmp_res *cmpRes
     struct comparisonData cmpData = {elm1, elm2, cmpRes};
     comparisonList.push_back(cmpData);
 }
+
+template class ps_framework::Schedular<ps_framework::LinearFunction>;
 

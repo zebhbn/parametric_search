@@ -3,6 +3,7 @@
 //
 
 #include "ps_quicksort.hpp"
+#include "LinearFunction.hpp"
 #include <vector>
 
 // Quicksort inspired by https://www.geeksforgeeks.org/quick-sort/
@@ -18,8 +19,8 @@ ps_framework::PSQuicksort<T>::PSQuicksort(ISchedular<T> *schl, std::vector<T> *v
 
 template <typename T>
 void ps_framework::PSQuicksort<T>::sort() {
-    co_task<void> initTask = quicksort(arr, 0, arr->size()-1);
-    schedular->spawn(&initTask);
+    co_task_void initTask = quicksort(0, arr->size()-1);
+    schedular->spawn(initTask);
     schedular->run();
 }
 
@@ -38,13 +39,13 @@ void ps_framework::PSQuicksort<T>::swap(int i, int j) {
 template <typename T>
 ps_framework::co_task<int> ps_framework::PSQuicksort<T>::partition(int low, int high){
     // Pivot should maybe be selected randomly
-    T pivot = arr[high];
+    T pivot = (*arr)[high];
 
     int i = (low-1);
 
     for (int j = low; j <= high; j++) {
 //        psframe->compare(&arr[j], &pivot, &res[j]);
-        schedular->addComparison(&arr[j], &pivot, &res[j]);
+        schedular->addComparison(&(*arr)[j], &pivot, &(*res)[j]);
     }
     // All comparisons have been requested
     // return control
@@ -64,10 +65,10 @@ ps_framework::co_task<int> ps_framework::PSQuicksort<T>::partition(int low, int 
 };
 
 template <typename T>
-ps_framework::co_task<void> ps_framework::PSQuicksort<T>::quicksort(int low, int high){
+ps_framework::co_task_void ps_framework::PSQuicksort<T>::quicksort(int low, int high){
     if (low < high) {
         // Create the partition task
-        co_task<int> partitionTask = partition(arr, low, high);
+        co_task<int> partitionTask = partition(low, high);
         // Start the task
         partitionTask.resume();
         // partition is now exhausted for comparisons
@@ -85,15 +86,16 @@ ps_framework::co_task<void> ps_framework::PSQuicksort<T>::quicksort(int low, int
 
         // Make the recursive calls by calling spawning them as tasks
         // in the schedular
-        co_task<void> recTask1 = quicksort(arr, low, pivot - 1);
-        co_task<void> recTask2 = quicksort(arr, pivot + 1, high);
+        co_task_void recTask1 = quicksort(low, pivot - 1);
+        co_task_void recTask2 = quicksort(pivot + 1, high);
 
         // Spawn them both
         schedular->spawn(recTask1);
         schedular->spawn(recTask2);
 
     }
-
     co_return;
 };
+
+template class ps_framework::PSQuicksort<ps_framework::LinearFunction>;
 

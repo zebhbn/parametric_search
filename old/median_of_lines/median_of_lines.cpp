@@ -31,6 +31,18 @@ class SeqAlgoMedianLines:public ISeqAlgo {
         std::vector<FunctionBase> *p_funcs;
 };
 
+double getLambdaValue(double lambda, std::vector<FunctionBase> *p_funcs){
+            // Map f(lambda) -> double
+            int n = (*p_funcs).size();
+            std::vector<double> vals(n);
+            for (int i = 0; i<n;i++)
+                vals[i] = (*p_funcs)[i].compute(lambda);
+            // Get median and return sign of result
+            sort(vals.begin(),vals.end());
+            double median = vals[n/2];
+	    return median;
+}
+
 double test(int numLines) {
     // Generate lines
     int number_of_lines = numLines;
@@ -53,20 +65,22 @@ double test(int numLines) {
     PSMergeSort mSort = PSMergeSort(&fm, &sorted_lines);
     // Sort the lines using parametric search based merge sort
     mSort.sort();
+    for (auto line : sorted_lines)
+	std::cout<<"l:"<<seqAlgo.compare(line.getRoot())+1<<" a:"<<line.a<<" b:"<<line.b<<std::endl;
     // Lambda star is now the root of the median line
     double lambda_star = sorted_lines[number_of_lines/2].getRoot();
     double root,root2;
-    for (int i=0; i<number_of_lines;i++) {
-        root = sorted_lines[i].getRoot();
-        // root = lines[i].getRoot();
-        // assert(root==root2);
-        // std::cout<<root<<std::endl;
-        // int bob = seqAlgo.compare(root);
-        // std::cout<<bob<<std::endl;
-        // if (root > -0.03 && root < 0.03)
-        //     std::cout << "root=" << root << " i=" << i << std::endl;
+    /* for (int i=0; i<number_of_lines;i++) { */
+    /*     root = sorted_lines[i].getRoot(); */
+    /*     /1* root = lines[i].getRoot(); *1/ */
+    /*     // assert(root==root2); */
+    /*     // std::cout<<root<<std::endl; */
+    /*     int bob = seqAlgo.compare(root); */
+    /*     std::cout<<bob<<std::endl; */
+    /*     // if (root > -0.03 && root < 0.03) */
+    /*     //     std::cout << "root=" << root << " i=" << i << std::endl; */
 
-    }
+    /* } */
     return lambda_star;
 }
 
@@ -100,7 +114,7 @@ double nonPsVersion(int numLines) {
 }
 
 int main(){
-    int numLines = 101;
+    int numLines = 5;
     double lambda_star = test(numLines);
     double test_lambda_star = nonPsVersion(numLines);
     // Output result

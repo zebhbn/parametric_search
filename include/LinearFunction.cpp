@@ -4,11 +4,14 @@
 
 #include "LinearFunction.hpp"
 #include <limits>
+#include <cmath>
 
 double ps_framework::LinearFunctionComparer::getCriticalValue(LinearFunction * f1, LinearFunction *f2) {
     // If no intersection then compare b values of lines
-    if (f1->a == f2->a)
+    // Here we set the root/critical value as not a number
+    if (f1->a == f2->a){
         return std::numeric_limits<double>::quiet_NaN();
+    }
     // Get root of f1-f2
     double root = ((f2->b)-(f1->b))/((f1->a)-(f2->a));
     // The root is the critical value
@@ -17,15 +20,24 @@ double ps_framework::LinearFunctionComparer::getCriticalValue(LinearFunction * f
 
 ps_framework::cmp_res ps_framework::LinearFunctionComparer::
     getCompareResult(LinearFunction *f1, LinearFunction *f2, cmp_res cmpRes) {
-        if (cmpRes == LessThan || cmpRes == EqualTo) {
-            // the intersection is not in the searching interval
-            // and is in the lower end of the interval
-            // So we should return depending on which one has the
-            // smallest slope
-            if ((f1->a) < (f2->a))
+        // root was nan i.e. no intersection between lines
+        if (cmpRes == Unresolved) {
+            // If no intersection then compare b values of lines
+            if (f1->b < f2->b)
                 return LessThan;
             else
                 return GreaterThan;
+        }
+        else if (cmpRes == EqualTo) {
+            return cmpRes;
+        }
+        else if (cmpRes == LessThan) {
+            if ((f1->a) > (f2->a)) {
+                return GreaterThan;
+            }
+            else{
+                return LessThan;
+            }
         }
         else /*if (root >= end)*/ {
             if ((f1->a) > (f2->a))

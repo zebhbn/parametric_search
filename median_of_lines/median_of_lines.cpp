@@ -2,6 +2,7 @@
 
 //#include "ps_framework.hpp"
 #include "ps_quicksort.hpp"
+#include "ps_interfaces.hpp"
 #include "LinearFunction.hpp"
 #include "schedular.hpp"
 #include "PSCore.hpp"
@@ -36,44 +37,6 @@ class SeqAlgoMedianLines : public ps_framework::ISeqAlgo {
         std::vector<ps_framework::LinearFunction> *p_funcs;
 };
 
-//double test(int numLines) {
-//    // Generate lines
-//    int number_of_lines = numLines;
-//    std::vector<FunctionBase> lines;
-//    std::vector<FunctionBase> sorted_lines;
-//    lines.reserve(number_of_lines);
-//    sorted_lines.reserve(number_of_lines);
-//    int a = 1;
-//    int b = 0;
-//    for (size_t i=0; i<number_of_lines; ++i){
-//        a = (a*i) % number_of_lines + 1;
-//        b = (b*i) % number_of_lines - a;
-//        lines.push_back(FunctionBase((double)a,(double)b));
-//        sorted_lines.push_back(FunctionBase((double)a,(double)b));
-//    }
-//    // Instantiate everything
-//    PSFramework fm = PSFramework();
-//    SeqAlgoMedianLines seqAlgo = SeqAlgoMedianLines(&sorted_lines);
-//    fm.setSeqAlgo(&seqAlgo);
-//    PSMergeSort mSort = PSMergeSort(&fm, &sorted_lines);
-//    // Sort the lines using parametric search based merge sort
-//    mSort.sort();
-//    // Lambda star is now the root of the median line
-//    double lambda_star = sorted_lines[number_of_lines/2].getRoot();
-//    double root,root2;
-//    for (int i=0; i<number_of_lines;i++) {
-//        root = sorted_lines[i].getRoot();
-//        // root = lines[i].getRoot();
-//        // assert(root==root2);
-//        // std::cout<<root<<std::endl;
-//        // int bob = seqAlgo.compare(root);
-//        // std::cout<<bob<<std::endl;
-//        // if (root > -0.03 && root < 0.03)
-//        //     std::cout << "root=" << root << " i=" << i << std::endl;
-//
-//    }
-//    return lambda_star;
-//}
 
 double nonPsVersion(int numLines) {
     // Generate lines
@@ -127,23 +90,26 @@ double psVersion(int numLines) {
     auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
     auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&schedular, &lines);
     quickSort.sort();
-    return lines[number_of_lines/2].getRoot();
+//    for (auto line : lines){
+//        double l = getLambdaValue(line.getRoot(), &lines);
+//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" r:"<<line.getRoot()<<" l:"<<l<<std::endl;
+//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" l:"<<seqAlgo.compare(line.getRoot())<<std::endl;
+//        std::cout<<"l:"<<seqAlgo.compare(line.getRoot())<<" a:"<<line.a<<" b:"<<line.b<<std::endl;
+//        std::cout<<seqAlgo.compare(line.getRoot())<<std::endl;
+//    }
+    ps_framework::LinearFunction median = lines[number_of_lines/2];
+//    std::cout << "lambda* = " << lines[number_of_lines/2 -1].getRoot() << std::endl;
+//    std::cout << "lambda* = " << lines[number_of_lines/2 +1].getRoot() << std::endl;
+    return median.getRoot();
 }
-
-
 
 int main(){
     int numLines = 101;
     double lambda_star = psVersion(numLines);
+//    double lambda_star = simpleTestPSVersion();
     double test_lambda_star = nonPsVersion(numLines);
 //    // Output result
     std::cout << "lambda* = " << lambda_star << std::endl;
     std::cout << "real lambda* = " << test_lambda_star << std::endl;
-
-
-//    auto vec = std::vector<int>();
-//    auto psFrame = new ps_framework::PSFramework<int>();
-//    auto psQuicksort = new ps_framework::PSQuicksort<int>(psFrame, &vec);
-
     return 0;
 }
