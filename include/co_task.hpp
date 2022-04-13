@@ -74,8 +74,13 @@ namespace ps_framework {
             std::suspend_always final_suspend() noexcept {
                 return {};
             }
+//            std::suspend_never final_suspend() noexcept {
+//                return {};
+//            }
 
-            void unhandled_exception() noexcept {};
+            void unhandled_exception() noexcept {
+                std::cout<<"Something went wrong!!!"<<std::endl;
+            };
 
             void return_void() {}
         };
@@ -84,7 +89,7 @@ namespace ps_framework {
                 : handle_(std::move(handle)) {}
 
         ~co_task_void() {
-//            std::cout<<"Coroutine destroyed"<<std::endl;
+//            std::cout<<"Coroutine not really destroyed"<<std::endl;
         }
         void destroyMe() {
 //            std::cout<<"Coroutine destroyed"<<std::endl;
@@ -102,8 +107,7 @@ namespace ps_framework {
 //        }
 
         bool done() const noexcept {
-            bool retval = handle_.done();
-            return retval;
+            return handle_.done();
         }
 
         std::coroutine_handle<promise_type> handle_{nullptr};

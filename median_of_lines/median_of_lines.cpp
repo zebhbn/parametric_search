@@ -104,7 +104,7 @@ double psVersion(int numLines) {
 }
 
 int main(){
-    int numLines = 101;
+    int numLines = 1001;
     double lambda_star = psVersion(numLines);
 //    double lambda_star = simpleTestPSVersion();
     double test_lambda_star = nonPsVersion(numLines);

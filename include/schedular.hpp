@@ -50,10 +50,8 @@ void ps_framework::Schedular<T>::runActiveTasks() {
     int i = 1;
     while (!activeTasks.empty()){
         // Run task
-//        std::cout<< "Resuming task: " << i++ << std::endl;
-        assert(!activeTasks.front()->done());
+//        assert(!activeTasks.front()->done());
         activeTasks.front()->resume();
-//        std::cout<< "Pushing task to idle tasks" << std::endl;
         activeTasks.front()->done();
         // Push to idle tasks if not done
         if (!activeTasks.front()->done()){
@@ -71,7 +69,8 @@ void ps_framework::Schedular<T>::runActiveTasks() {
 template <typename T>
 void ps_framework::Schedular<T>::runIdleTasks() {
     while (!idleTasks.empty()){
-        assert(!idleTasks.front()->done());
+//        std::cout<<"Resuming idle tasks"<<std::endl;
+//        assert(!idleTasks.front()->done());
         // Run task
         idleTasks.front()->resume();
         // If tasks is not complete then push to active tasks
@@ -79,8 +78,8 @@ void ps_framework::Schedular<T>::runIdleTasks() {
 //        if (!idleTasks.front()->done())
 //            activeTasks.push(idleTasks.front());
 //        else
-//            // clean up
-//            idleTasks.front()->destroyMe();
+            // clean up
+            idleTasks.front()->destroyMe();
         // clean up
 //        idleTasks.front()->destroyMe();
         // Remove from queue

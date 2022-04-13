@@ -119,12 +119,14 @@ ps_framework::co_task_void ps_framework::PSQuicksort<T>::quicksort(int low, int 
         // Make the recursive calls by calling spawning them as tasks
         // in the schedular
         if (low < (pivot+1)) {
-            co_task_void recTask1 = quicksort(low, pivot - 1);
-            schedular->spawn(&recTask1);
+//            co_task_void recTask1 = quicksort(low, pivot - 1);
+            auto recTask1 = new co_task_void(quicksort(low,pivot-1));
+            schedular->spawn(recTask1);
         }
         if ((pivot+1) < high) {
-            co_task_void recTask2 = quicksort(pivot + 1, high);
-            schedular->spawn(&recTask2);
+//            co_task_void recTask2 = quicksort(pivot + 1, high);
+            auto recTask2 = new co_task_void(quicksort(pivot+1,high));
+            schedular->spawn(recTask2);
 
         }
     }
