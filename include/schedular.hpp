@@ -46,8 +46,6 @@ ps_framework::Schedular<T>::Schedular(IPSCore *core, IComparer<T> *cmpr) :
 
 template <typename T>
 void ps_framework::Schedular<T>::runActiveTasks() {
-//    std::cout << "Size of active tasks: " << activeTasks.size() << std::endl;
-    int i = 1;
     while (!activeTasks.empty()){
         // Run task
 //        assert(!activeTasks.front()->done());
@@ -74,7 +72,7 @@ void ps_framework::Schedular<T>::runIdleTasks() {
         // Run task
         idleTasks.front()->resume();
         // If tasks is not complete then push to active tasks
-        // TODO: FIX CLEAN UP
+        // DONE: FIX CLEAN UP
 //        if (!idleTasks.front()->done())
 //            activeTasks.push(idleTasks.front());
 //        else

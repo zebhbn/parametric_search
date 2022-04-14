@@ -61,6 +61,8 @@ void ps_framework::PSCore::binarySearch(std::vector<ps_framework::criticalValueR
     // Initialize binary searching interval
     int e = 0;
     int f = vec->size() - 1;
+    // Sort the values in the vector
+    // Could also just use nth_element on every searching half of the binary search
     std::sort(vec->begin(), vec->end(),
                      [this](auto e1, auto e2){ return e1.criticalValue<e2.criticalValue; });
 

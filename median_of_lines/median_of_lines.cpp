@@ -1,6 +1,3 @@
-//#include "ps_merge_sort.hpp"
-
-//#include "ps_framework.hpp"
 #include "ps_quicksort.hpp"
 #include "ps_interfaces.hpp"
 #include "LinearFunction.hpp"
