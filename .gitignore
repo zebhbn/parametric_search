@@ -35,7 +35,14 @@
 *.code-workspace
 
 #IDEA / CLion
-cmake-build-debug
 .idea
+
+# CMake
+cmake-build-debug
 cmake-build-debug-coverage
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+
+
 
