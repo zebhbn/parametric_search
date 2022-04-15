@@ -14,6 +14,7 @@ namespace ps_framework {
                 ISchedular<T> *schedular,
                 std::vector<T> *vec
         );
+        ~PSQuicksort();
 
         // For testing purposes
 //        PSQuicksort();
@@ -132,6 +133,13 @@ ps_framework::co_task_void ps_framework::PSQuicksort<T>::quicksort(int low, int 
     }
 //    std::cout<< "finishing quicksort coroutine"<<std::endl;
     co_return;
+}
+
+template<typename T>
+ps_framework::PSQuicksort<T>::~PSQuicksort() {
+    // Cleanup
+    res->clear();
+    delete res;
 };
 
 #endif

@@ -17,6 +17,7 @@ namespace ps_framework {
     class Schedular : public ps_framework::ISchedular<T> {
     public:
         Schedular(IPSCore *core, IComparer<T>* cmpr);
+        ~Schedular();
         void spawn(ps_framework::co_task_void*);
         void run();
         void addComparison(T*, T*, cmp_res*);
@@ -165,6 +166,10 @@ template <typename T>
 void ps_framework::Schedular<T>::addComparison(T *elm1, T *elm2, cmp_res *cmpRes) {
     struct comparisonData cmpData = {elm1, elm2, cmpRes};
     comparisonList.push_back(cmpData);
+}
+
+template<typename T>
+ps_framework::Schedular<T>::~Schedular() {
 }
 
 

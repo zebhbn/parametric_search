@@ -46,19 +46,9 @@ double nonPsVersion(int numLines) {
     for (size_t i=0; i<number_of_lines; ++i){
         a = (a*i) % number_of_lines + 1;
         b = (b*i) % number_of_lines - a;
-        // std::cout << "a=" << a << " b=" << b << std::endl;
-//        lines.push_back(FunctionBase((double)a,(double)b));
-
         lines.push_back(ps_framework::LinearFunction((double)a,(double)b));
     }
-    // Instantiate everything
-//    PSFramework fm = PSFramework();
     SeqAlgoMedianLines seqAlgo = SeqAlgoMedianLines(&lines);
-//    fm.setSeqAlgo(&seqAlgo);
-    // PSMergeSort mSort = PSMergeSort(&fm, &lines);
-    // Sort the lines using parametric search based merge sort
-    // mSort.sort();
-    // Lambda star is now the root of the median line
     double star = 123123123;
     for (int i = 0; i<number_of_lines;i++){
         if (seqAlgo.compare(lines[i].getRoot())==ps_framework::EqualTo)
@@ -76,9 +66,6 @@ double psVersion(int numLines) {
     for (size_t i=0; i<number_of_lines; ++i){
         a = (a*i) % number_of_lines + 1;
         b = (b*i) % number_of_lines - a;
-        // std::cout << "a=" << a << " b=" << b << std::endl;
-//        lines.push_back(FunctionBase((double)a,(double)b));
-
         lines.push_back(ps_framework::LinearFunction((double)a,(double)b));
     }
     // Instantiate everything
@@ -88,16 +75,7 @@ double psVersion(int numLines) {
     auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
     auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&schedular, &lines);
     quickSort.sort();
-//    for (auto line : lines){
-//        double l = getLambdaValue(line.getRoot(), &lines);
-//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" r:"<<line.getRoot()<<" l:"<<l<<std::endl;
-//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" l:"<<seqAlgo.compare(line.getRoot())<<std::endl;
-//        std::cout<<"l:"<<seqAlgo.compare(line.getRoot())<<" a:"<<line.a<<" b:"<<line.b<<std::endl;
-//        std::cout<<seqAlgo.compare(line.getRoot())<<std::endl;
-//    }
     ps_framework::LinearFunction median = lines[number_of_lines/2];
-//    std::cout << "lambda* = " << lines[number_of_lines/2 -1].getRoot() << std::endl;
-//    std::cout << "lambda* = " << lines[number_of_lines/2 +1].getRoot() << std::endl;
     return median.getRoot();
 }
 double psMultiThreadVersion(int numLines) {
@@ -110,9 +88,6 @@ double psMultiThreadVersion(int numLines) {
     for (size_t i=0; i<number_of_lines; ++i){
         a = (a*i) % number_of_lines + 1;
         b = (b*i) % number_of_lines - a;
-        // std::cout << "a=" << a << " b=" << b << std::endl;
-//        lines.push_back(FunctionBase((double)a,(double)b));
-
         lines.push_back(ps_framework::LinearFunction((double)a,(double)b));
     }
     // Instantiate everything
@@ -122,16 +97,7 @@ double psMultiThreadVersion(int numLines) {
     auto schedular = ps_framework::MultiThreadSchedular<ps_framework::LinearFunction>(&psCore, &linComparer,8);
     auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&schedular, &lines);
     quickSort.sort();
-//    for (auto line : lines){
-//        double l = getLambdaValue(line.getRoot(), &lines);
-//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" r:"<<line.getRoot()<<" l:"<<l<<std::endl;
-//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" l:"<<seqAlgo.compare(line.getRoot())<<std::endl;
-//        std::cout<<"l:"<<seqAlgo.compare(line.getRoot())<<" a:"<<line.a<<" b:"<<line.b<<std::endl;
-//        std::cout<<seqAlgo.compare(line.getRoot())<<std::endl;
-//    }
     ps_framework::LinearFunction median = lines[number_of_lines/2];
-//    std::cout << "lambda* = " << lines[number_of_lines/2 -1].getRoot() << std::endl;
-//    std::cout << "lambda* = " << lines[number_of_lines/2 +1].getRoot() << std::endl;
     return median.getRoot();
 }
 
@@ -139,9 +105,8 @@ int main(){
     int numLines = 101;
     double lambda_star = psVersion(numLines);
     double lambda_star_multi = psMultiThreadVersion(numLines);
-//    double lambda_star = simpleTestPSVersion();
     double test_lambda_star = nonPsVersion(numLines);
-//    // Output result
+    // Output result
     std::cout << "lambda* = " << lambda_star << std::endl;
     std::cout << "multilambda* = " << lambda_star_multi << std::endl;
     std::cout << "real lambda* = " << test_lambda_star << std::endl;
