@@ -37,4 +37,5 @@
 #IDEA / CLion
 cmake-build-debug
 .idea
+cmake-build-debug-coverage
 

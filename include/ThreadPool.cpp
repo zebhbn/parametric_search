@@ -16,6 +16,7 @@
 // Initilallize pool with specified number of threads
 ps_framework::ThreadPool::ThreadPool(int numThreads) {
     terminate = false;
+    workingThreads = 0;
     threadVec.reserve(numThreads);
     for (int i = 0; i<numThreads; i++){
         threadVec.push_back(std::thread([this]{this->loopFunc();}));
@@ -26,10 +27,12 @@ ps_framework::ThreadPool::ThreadPool(int numThreads) {
 // maximal number of threads the system supports is selected
 ps_framework::ThreadPool::ThreadPool() {
     stopped = false;
+    workingThreads = 0;
     int numThreads = std::thread::hardware_concurrency();
     threadVec.reserve(numThreads);
     for (int i = 0; i<numThreads; i++){
-        threadVec.push_back(std::thread([this]{this->loopFunc();}));
+//        threadVec.push_back(std::thread([this]{this->loopFunc();}));
+        threadVec.push_back(std::thread(&ThreadPool::loopFunc,this));
     }
 }
 
@@ -39,7 +42,7 @@ void ps_framework::ThreadPool::loopFunc() {
         // Lock mutex or wait until unlocked
         std::unique_lock<std::mutex> lock(qMutex);
         cv_job.wait(lock, [this](){
-            !jobQueue.empty() || terminate;
+            return !jobQueue.empty() || terminate;
         });
         // Increment workingThreads counter
         ++workingThreads;

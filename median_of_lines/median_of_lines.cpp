@@ -7,6 +7,7 @@
 #include <algorithm> // sort: used to find median in A_s algo, could ude nth_element
 #include <iostream> // Write result to stdout
 #include <cassert>
+#include "MultiTSchedular.hpp"
 
 class SeqAlgoMedianLines : public ps_framework::ISeqAlgo {
     public:
@@ -99,14 +100,50 @@ double psVersion(int numLines) {
 //    std::cout << "lambda* = " << lines[number_of_lines/2 +1].getRoot() << std::endl;
     return median.getRoot();
 }
+double psMultiThreadVersion(int numLines) {
+    // Generate lines
+    int number_of_lines = numLines;
+    std::vector<ps_framework::LinearFunction> lines;
+    lines.reserve(number_of_lines);
+    int a = 1;
+    int b = 0;
+    for (size_t i=0; i<number_of_lines; ++i){
+        a = (a*i) % number_of_lines + 1;
+        b = (b*i) % number_of_lines - a;
+        // std::cout << "a=" << a << " b=" << b << std::endl;
+//        lines.push_back(FunctionBase((double)a,(double)b));
+
+        lines.push_back(ps_framework::LinearFunction((double)a,(double)b));
+    }
+    // Instantiate everything
+    SeqAlgoMedianLines seqAlgo = SeqAlgoMedianLines(&lines);
+    auto psCore = ps_framework::PSCore(&seqAlgo);
+    auto linComparer = ps_framework::LinearFunctionComparer();
+    auto schedular = ps_framework::MultiThreadSchedular<ps_framework::LinearFunction>(&psCore, &linComparer,8);
+    auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&schedular, &lines);
+    quickSort.sort();
+//    for (auto line : lines){
+//        double l = getLambdaValue(line.getRoot(), &lines);
+//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" r:"<<line.getRoot()<<" l:"<<l<<std::endl;
+//        std::cout<<"a:"<<line.a<<" b:"<<line.b<<" l:"<<seqAlgo.compare(line.getRoot())<<std::endl;
+//        std::cout<<"l:"<<seqAlgo.compare(line.getRoot())<<" a:"<<line.a<<" b:"<<line.b<<std::endl;
+//        std::cout<<seqAlgo.compare(line.getRoot())<<std::endl;
+//    }
+    ps_framework::LinearFunction median = lines[number_of_lines/2];
+//    std::cout << "lambda* = " << lines[number_of_lines/2 -1].getRoot() << std::endl;
+//    std::cout << "lambda* = " << lines[number_of_lines/2 +1].getRoot() << std::endl;
+    return median.getRoot();
+}
 
 int main(){
-    int numLines = 1001;
+    int numLines = 101;
     double lambda_star = psVersion(numLines);
+    double lambda_star_multi = psMultiThreadVersion(numLines);
 //    double lambda_star = simpleTestPSVersion();
     double test_lambda_star = nonPsVersion(numLines);
 //    // Output result
     std::cout << "lambda* = " << lambda_star << std::endl;
+    std::cout << "multilambda* = " << lambda_star_multi << std::endl;
     std::cout << "real lambda* = " << test_lambda_star << std::endl;
     return 0;
 }

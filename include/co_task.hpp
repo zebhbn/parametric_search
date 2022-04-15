@@ -85,7 +85,11 @@ namespace ps_framework {
         co_task_void (std::coroutine_handle<promise_type> handle)
                 : handle_(std::move(handle)) {}
 
-        ~co_task_void() {}
+        ~co_task_void() {
+//            if (handle_){
+//                handle_.destroy();
+//            }
+        }
 
         void destroyMe() {
 //            std::cout<<"Coroutine destroyed"<<std::endl;

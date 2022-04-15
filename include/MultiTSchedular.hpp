@@ -15,6 +15,8 @@
 #ifndef MULTISCHEDULAR_HPP
 #define MULTISCHEDULAR_HPP
 
+// TODO: Run active and idle tasks in parallel
+// Right now we only compute critical values in parallel
 namespace ps_framework {
     template <typename T>
     class MultiThreadSchedular : public ps_framework::ISchedular<T> {
@@ -39,8 +41,8 @@ namespace ps_framework {
         co_task_void computeSingleCriticalValue(
                 std::vector<criticalValueResult>* critVec,
                 int index,
-                T elm1,
-                T elm2
+                T *elm1,
+                T *elm2
                 );
 
         // Added for safe storing and posible reading when computing critical values
@@ -125,10 +127,11 @@ void ps_framework::MultiThreadSchedular<T>::run() {
         // Run idle tasks
         runIdleTasks();
     }
+//    threadPool->shutdown();
 }
 
 template <typename T>
-ps_framework::co_task_void ps_framework::MultiThreadSchedular<T>::computeSingleCriticalValue(std::vector<criticalValueResult> *critVec, int index, T elm1, T elm2) {
+ps_framework::co_task_void ps_framework::MultiThreadSchedular<T>::computeSingleCriticalValue(std::vector<criticalValueResult> *critVec, int index, T *elm1, T *elm2) {
     // Compute critical value, could take a long time
     double criticalValue = comparer->getCriticalValue(elm1, elm2);
     // Store critical value alongside
@@ -140,7 +143,7 @@ ps_framework::co_task_void ps_framework::MultiThreadSchedular<T>::computeSingleC
     };
     // Lock or wait until unlocked
     std::unique_lock lock(critMutex);
-    cv.wait(lock);
+    cv.wait(lock, [this]{return true;});
 
     // Push data to vector
     critVec->push_back(cvr);
