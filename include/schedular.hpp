@@ -21,6 +21,7 @@ namespace ps_framework {
         void spawn(ps_framework::co_task_void*);
         void run();
         void addComparison(T*, T*, cmp_res*);
+        void resolveComparisons();
     private:
         ps_framework::IComparer<T> *comparer;
         ps_framework::IPSCore *psCore;
@@ -28,7 +29,6 @@ namespace ps_framework {
         std::queue<co_task_void*> idleTasks;
         void runActiveTasks();
         void runIdleTasks();
-        void resolveComparisons();
         void computeCriticalValues(std::vector<criticalValueResult>*);
 
         // Structure for storing comparison data

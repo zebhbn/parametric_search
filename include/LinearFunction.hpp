@@ -19,6 +19,21 @@ namespace ps_framework {
         double getRoot(){
             return -b/a;
         }
+        LinearFunction operator+ (const LinearFunction& func){
+            LinearFunction newFunc(0,0);
+            newFunc.a = this->a + func.a;
+            newFunc.b = this->b + func.b;
+            return newFunc;
+        };
+        LinearFunction operator- (const LinearFunction& func){
+            LinearFunction newFunc(0,0);
+            newFunc.a = this->a - func.a;
+            newFunc.b = this->b - func.b;
+            return newFunc;
+        };
+        bool operator== (const LinearFunction& func){
+            return ((this->a==func.a)&&(this->b==func.b));
+        };
     };
 
     class LinearFunctionComparer : public ps_framework::IComparer<LinearFunction> {

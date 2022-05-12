@@ -14,9 +14,9 @@ namespace ps_framework {
         PSCore(ISeqAlgo*);
         PSCore(ISeqAlgo*, double, double);
         void runCompareList(std::vector<ps_framework::criticalValueResult> *);
-    private:
         double start;
         double end;
+    private:
         ISeqAlgo *seqAlgo;
         bool isInInterval(double);
         cmp_res compareToLambdaStar(double);
