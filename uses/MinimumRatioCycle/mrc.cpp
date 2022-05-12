@@ -61,20 +61,9 @@ public:
                 }
             }
         }
-        // Find out if there is a negative cycle
-//        bool zerocycle = false;
-//        for (int i = 0; i<n; i++){
-//            for (int j = 0; j<n; j++){
-////                std::cout<<dist[i][j]<<std::endl;
-//                if (dist[i][j] < 0)
-//                    return ps_framework::LessThan;
-//                else if (dist[i][j] == 0)
-//                    zerocycle = true;
-//            }
-//        }
+
         bool zerocycle = false;
         for (int i = 0; i<n; i++){
-//                std::cout<<dist[i][j]<<std::endl;
             if (dist[i][i] < 0)
                 return ps_framework::LessThan;
             else if (dist[i][i] == 0)
@@ -91,127 +80,30 @@ private:
     std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> *p_funcs;
 };
 
-double psVersion(){
-    assert(false);
-    // Following approach 1 in megiddo 83'
-
-    // 1. Start by creating comparison between each ordered pair
-    // (i,j)
-    // 2. Then using a new comparerer and object definition generate
-    // O(V³) breakpoints. This will probably require a modification
-    // to the current framework...
-    // 3. Use binary search/PSCore with negative cycle detection
-    // algorithm used as sequential algorithm ISeqAlgo.
-}
-
-//std::vector<std::vector<ps_framework::LinearFunction>> * generateGraph(){
-//    auto vec = new std::vector<std::vector<ps_framework::LinearFunction>>(
-//            5,
-//            std::vector(5,ps_framework::LinearFunction(
-//                    std::numeric_limits<double>::infinity(),
-//                    0.0)));
-//    for (int i = 0; i<5;i++) {
-//        (((*vec)[i])[i]).a = 0;
-//        (((*vec)[i])[i]).b = 0;
-//    }
-//    // add edges with defined length and time
-//
-//    (*vec)[0][1].a = 1;
-//    (*vec)[0][1].b = 1;
-//
-//    (*vec)[1][2].a = 1;
-//    (*vec)[1][2].b = 1;
-//
-//    (*vec)[1][4].a = 2;
-//    (*vec)[1][4].b = 1;
-//
-//    (*vec)[2][3].a = 1;
-//    (*vec)[2][3].b = 2;
-//
-//    (*vec)[3][4].a = 1;
-//    (*vec)[3][4].b = 1;
-//
-//    (*vec)[2][3].a = 1;
-//    (*vec)[2][3].b = 2;
-//
-//    return vec;
-//}
-
 std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * generateGraphOpt(){
-//    auto vec = new std::vector<std::vector<ps_framework::LinearFunction>>(
-//            5,
-//            std::vector(5,std::nullopt));
     auto vec = new std::vector<std::vector<std::optional<ps_framework::LinearFunction>>>(
             5,
             std::vector<std::optional<ps_framework::LinearFunction>>(5,std::nullopt));
-//    for (int i = 0; i<5;i++) {
-//        (((*vec)[i])[i]).a = 0;
-//        (((*vec)[i])[i]).b = 0;
-//    }
+
     // add edges with defined length and time
-//    (*vec)[0][1].emplace(ps_framework::LinearFunction(1,1));
     (*vec)[0][1].emplace(ps_framework::LinearFunction(1,1));
 
-//    (*vec)[1][2].emplace(ps_framework::LinearFunction(1,1));
     (*vec)[1][2].emplace(ps_framework::LinearFunction(1,1));
 
-//    (*vec)[1][4].emplace(ps_framework::LinearFunction(2,1));
     (*vec)[1][4].emplace(ps_framework::LinearFunction(1,2));
 
-//    (*vec)[2][3].emplace(ps_framework::LinearFunction(1,2));
     (*vec)[2][3].emplace(ps_framework::LinearFunction(2,1));
 
-//    (*vec)[3][4].emplace(ps_framework::LinearFunction(1,1));
     (*vec)[3][4].emplace(ps_framework::LinearFunction(1,1));
 
-//    (*vec)[4][0].emplace(ps_framework::LinearFunction(1,2));
     (*vec)[4][0].emplace(ps_framework::LinearFunction(2,1));
 
     return vec;
 }
 
-// Solves uij = uim + umj
-//double solve_t(ps_framework::LinearFunction ij,
-//               ps_framework::LinearFunction im,
-//               ps_framework::LinearFunction mj){
-//    return (im.a + mj.a - ij.a) / (im.b - mj.b - ij.b);
-//}
 
-
-
-
-// Following the very naive approach as explain in Megiddo '79
-double nonPsVersion(){
-//    double e = - std::numeric_limits<double>::infinity();
-//    double f = std::numeric_limits<double>::infinity();
-//    int i,j,m = 0;
-//
-//    auto mat = generateGraph();
-//    auto u = generateGraph();
-//    auto seqAlgo = SeqAlgoMinimumMeanCycle(mat);
-//
-//    while(1){
-//        auto tp = solve_t((*mat)[i][j],
-//                          (*mat)[i][m],
-//                          (*mat)[j][m]);
-//        // The unique solution is inside the interval
-//        if (e<tp && tp<f){
-//            auto res = seqAlgo.compare(tp);
-//            if (res == ps_framework::EqualTo){
-//                return tp;
-//            } else if (res == ps_framework::LessThan) {
-//                f = tp;
-//            } else {
-//                e = tp;
-//            }
-//        }
-//
-//
-//    }
-//
-//    assert(false);
-}
-
+// Naive approach as described by Megiddo '79
+// has time complexity O(n⁶)
 double naiveApproach(){
     auto mat = generateGraphOpt();
     auto n = mat->size();
@@ -222,14 +114,6 @@ double naiveApproach(){
     auto linComparer = ps_framework::LinearFunctionComparer();
     auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
 
-    auto inf = std::numeric_limits<double>::infinity();
-//    auto cmp_res = std::vector<std::vector<ps_framework::cmp_res>> (
-//            n,
-//            std::vector<ps_framework::cmp_res>(
-//                    n,
-//                    ps_framework::Unresolved
-//            )
-//    );
     auto cmp_res = ps_framework::Unresolved;
 
     for (int m = 0; m<n; m++){
@@ -246,16 +130,13 @@ double naiveApproach(){
                 }
                 else {
                     auto uplus = (uim.value()+umj.value());
-//                    auto up = new ps_framework::LinearFunction(uplus.a, )
                     schedular.addComparison(&uij.value(), &uplus, &cmp_res);
                     schedular.resolveComparisons();
                     if (cmp_res!=ps_framework::Unresolved){
                         if (cmp_res == ps_framework::GreaterThan){
-//                            std::cout<<"comparison resolved"<<std::endl;
                             (*u)[i][j] = {(*u)[i][m].value()+(*u)[m][j].value()};
                         }
                         else if (cmp_res == ps_framework::EqualTo){
-//                            std::cout<<"Found lambda star by accident:)"<<std::endl;
                         }
                         // Reset cmp value
                         cmp_res = ps_framework::Unresolved;
@@ -263,27 +144,16 @@ double naiveApproach(){
                 }
             }
         }
-//        schedular.resolveComparisons();
-//        for (int i = 0; i<n; i++){
-//            for (int j = 0; j<n; j++){
-//                if (cmp_res[i][j]!=ps_framework::Unresolved){
-//                    if (cmp_res[i][j] == ps_framework::GreaterThan){
-//                        std::cout<<"comparison resolved"<<std::endl;
-//                        (*u)[i][j] = {(*u)[i][m].value()+(*u)[m][j].value()};
-//                    }
-//                    else if (cmp_res[i][j] == ps_framework::EqualTo){
-//                        std::cout<<"Found lambda star by accident:)"<<std::endl;
-//                    }
-//                    // Reset cmp value
-//                    cmp_res[i][j] = ps_framework::Unresolved;
-//                }
-//            }
-//        }
     }
+    // Destroy things
+    delete mat;
+    delete u;
     // Return e from pscore ;)
     return psCore.end;
 }
 
+// A bit better approach also described in Megiddo '79
+// has time complexity O(n⁴log(n))
 double betterApproach(){
     auto mat = generateGraphOpt();
     auto n = mat->size();
@@ -294,7 +164,6 @@ double betterApproach(){
     auto linComparer = ps_framework::LinearFunctionComparer();
     auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
 
-    auto inf = std::numeric_limits<double>::infinity();
     auto cmp_res = std::vector<std::vector<ps_framework::cmp_res>> (
             n,
             std::vector<ps_framework::cmp_res>(
@@ -317,9 +186,7 @@ double betterApproach(){
                 }
                 else {
                     auto uplus = (uim.value()+umj.value());
-//                    auto up = new ps_framework::LinearFunction(uplus.a, )
                     schedular.addComparison(&uij.value(), &uplus, &cmp_res[i][j]);
-//                    std::cout<<"adding comparison to scheduler"<<std::endl;
                 }
             }
         }
@@ -328,11 +195,9 @@ double betterApproach(){
             for (int j = 0; j<n; j++){
                 if (cmp_res[i][j]!=ps_framework::Unresolved){
                     if (cmp_res[i][j] == ps_framework::GreaterThan){
-//                        std::cout<<"comparison resolved"<<std::endl;
                         (*u)[i][j] = {(*u)[i][m].value()+(*u)[m][j].value()};
                     }
                     else if (cmp_res[i][j] == ps_framework::EqualTo){
-//                        std::cout<<"Found lambda star by accident:)"<<std::endl;
                     }
                     // Reset cmp value
                     cmp_res[i][j] = ps_framework::Unresolved;
@@ -340,44 +205,14 @@ double betterApproach(){
             }
         }
     }
+    // Destroy things
+    delete mat;
+    delete u;
     // Return e from pscore ;)
     return psCore.end;
 }
 
-//void test(){
-//    char *ResTypes[] =
-//            {
-//                    "LessThan",
-//                    "EqualTo",
-//                    "GreaterThan",
-//                    "Unresolved"
-//            };
-//    auto mat = generateGraphOpt();
-//    auto bob = (*mat)[0][1];
-//    std::cout<<"A is: "<<bob.value().a<<std::endl;
-//    auto n = mat->size();
-//    auto u = generateGraphOpt();
-//    u->push_back(std::vector<std::optional<ps_framework::LinearFunction>>(n,std::nullopt));
-//    auto seqAlgo = SeqAlgoMinimumMeanCycle(mat);
-//    double l = 0.5;
-//    double e = 5.0/7.0;
-//    double g = 2;
-//
-//    std::cout<<"number is: "<<l<<std::endl;
-//    auto res = seqAlgo.compare(l);
-//    std::cout<<"Result: "<<ResTypes[res]<<" "<<res<<std::endl;
-//
-//    std::cout<<"number is: "<<e<<std::endl;
-//    res = seqAlgo.compare(e);
-//    std::cout<<"Result: "<<ResTypes[res]<<" "<<res<<std::endl;
-//
-//    std::cout<<"number is: "<<g<<std::endl;
-//    res = seqAlgo.compare(g);
-//    std::cout<<"Result: "<<ResTypes[res]<<" "<<res<<std::endl;
-//}
-
 int main(){
-//    test();
     auto lambdaNA = naiveApproach();
     auto lambdaBA = betterApproach();
     std::cout << "naive approach lambda* = " << lambdaNA << std::endl;
