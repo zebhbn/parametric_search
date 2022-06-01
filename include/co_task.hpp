@@ -110,6 +110,61 @@ namespace ps_framework {
         std::coroutine_handle<promise_type> handle_{nullptr};
     };
 
+    struct promise_type_void;
+
+    struct coro_task_void : std::coroutine_handle<promise_type_void> {
+
+        coro_task_void (std::coroutine_handle<promise_type_void> handle)
+                : handle_(std::move(handle)) {}
+
+        ~coro_task_void() {
+//            if (handle_){
+//                handle_.destroy();
+//            }
+        }
+
+        void destroyMe() {
+//            std::cout<<"Coroutine destroyed"<<std::endl;
+            if (handle_){
+                handle_.destroy();
+            }
+        }
+
+        void resume() {
+            handle_.resume();
+        }
+
+
+        bool done() const noexcept {
+            return handle_.done();
+        }
+
+        std::coroutine_handle<promise_type_void> handle_{nullptr};
+    };
+
+    struct promise_type_void {
+        promise_type_void() {}
+
+        coro_task_void get_return_object() {
+            return {coro_task_void::from_promise(*this)};
+        }
+
+        std::suspend_always initial_suspend() {
+            return {};
+        }
+
+        std::suspend_always final_suspend() noexcept {
+            return {};
+        }
+
+        void unhandled_exception() noexcept {
+            std::cout<<"Something went wrong!!!"<<std::endl;
+        };
+
+        void return_void() {}
+    };
+
+
 }
 
 
