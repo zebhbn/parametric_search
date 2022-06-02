@@ -113,6 +113,7 @@ namespace ps_framework {
     struct promise_type_void;
 
     struct coro_task_void : std::coroutine_handle<promise_type_void> {
+        using promise_type = struct promise_type_void;
 
         coro_task_void (std::coroutine_handle<promise_type_void> handle)
                 : handle_(std::move(handle)) {}
@@ -163,7 +164,8 @@ namespace ps_framework {
 
         void return_void() {}
 
-        int id;
+        int id = -1;
+        int parentId = -1;
     };
 
 

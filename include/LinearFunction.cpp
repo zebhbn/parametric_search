@@ -46,3 +46,11 @@ ps_framework::cmp_res ps_framework::LinearFunctionComparer::
                 return GreaterThan;
         }
 }
+
+ps_framework::cmp_res ps_framework::LinearFunctionComparer::getCompareResult(LinearFunction f1, LinearFunction f2, cmp_res cmpRes) {
+    return getCompareResult(&f1,&f2,cmpRes);
+}
+
+double ps_framework::LinearFunctionComparer::getCriticalValue(LinearFunction f1, LinearFunction f2) {
+    return getCriticalValue(&f1, &f2);
+}

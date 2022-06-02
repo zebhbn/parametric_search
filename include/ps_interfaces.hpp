@@ -21,8 +21,10 @@ namespace ps_framework {
     class IComparer {
     public:
         virtual double getCriticalValue(T *, T *) = 0;
+        virtual double getCriticalValue(T, T) = 0;
 
         virtual cmp_res getCompareResult(T *, T *, cmp_res) = 0;
+        virtual cmp_res getCompareResult(T, T, cmp_res) = 0;
     };
 
     template <typename T>

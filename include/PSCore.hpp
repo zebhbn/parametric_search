@@ -7,6 +7,7 @@
 
 #include "ps_interfaces.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace ps_framework {
     class PSCore : public ps_framework::IPSCore {

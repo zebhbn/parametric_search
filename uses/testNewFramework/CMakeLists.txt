@@ -11,4 +11,4 @@ add_executable(bob testNewF.cpp)
 
 target_link_libraries(Scheduler co_task)
 target_link_libraries(comparisonResolver Scheduler co_task)
-target_link_libraries(bob co_task comparisonResolver schedular)
+target_link_libraries(bob linearfunctions co_task comparisonResolver schedular)
