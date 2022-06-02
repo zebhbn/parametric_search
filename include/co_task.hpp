@@ -162,6 +162,8 @@ namespace ps_framework {
         };
 
         void return_void() {}
+
+        int id;
     };
 
 
