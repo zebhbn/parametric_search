@@ -4,6 +4,7 @@
 
 #include "co_task.hpp"
 #include "Scheduler.hpp"
+#include "schedular.hpp"
 #include "ComparisonResolver.hpp"
 #include <optional>
 #include "LinearFunction.hpp"
@@ -101,53 +102,54 @@ std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * generate
 
 // Naive approach as described by Megiddo '79
 // has time complexity O(n⁶)
-//double naiveApproach(){
-//    auto mat = generateGraphOpt();
-//    auto n = mat->size();
-//    auto u = generateGraphOpt();
-//    auto seqAlgo = SeqAlgoMinimumMeanCycle(mat);
-//
-//    auto psCore = ps_framework::PSCore(&seqAlgo);
-//    auto linComparer = ps_framework::LinearFunctionComparer();
-//    auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
-//
-//    auto cmp_res = ps_framework::Unresolved;
-//
-//    for (int m = 0; m<n; m++){
-//        for (int i = 0; i<n; i++){
-//            for (int j = 0; j<n; j++){
-//                auto uij = (*u)[i][j];
-//                auto uim = (*u)[i][m];
-//                auto umj = (*u)[m][j];
-//                if((!uim)||(!umj)){
-//                    continue;
-//                }
-//                else if (!uij){
-//                    (*u)[i][j] = {uim.value()+umj.value()};
-//                }
-//                else {
-//                    auto uplus = (uim.value()+umj.value());
-//                    schedular.addComparison(&uij.value(), &uplus, &cmp_res);
-//                    schedular.resolveComparisons();
-//                    if (cmp_res!=ps_framework::Unresolved){
-//                        if (cmp_res == ps_framework::GreaterThan){
-//                            (*u)[i][j] = {(*u)[i][m].value()+(*u)[m][j].value()};
-//                        }
-//                        else if (cmp_res == ps_framework::EqualTo){
-//                        }
-//                        // Reset cmp value
-//                        cmp_res = ps_framework::Unresolved;
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    // Destroy things
-//    delete mat;
-//    delete u;
-//    // Return e from pscore ;)
-//    return psCore.end;
-//}
+double naiveApproach(){
+    auto mat = generateGraphOpt();
+    auto n = mat->size();
+    auto u = generateGraphOpt();
+    auto seqAlgo = SeqAlgoMinimumMeanCycle(mat);
+
+    auto psCore = ps_framework::PSCore(&seqAlgo);
+    auto linComparer = ps_framework::LinearFunctionComparer();
+    auto schedular = ps_framework::Schedular<ps_framework::LinearFunction>(&psCore, &linComparer);
+
+    auto cmp_res = ps_framework::Unresolved;
+
+    for (int m = 0; m<n; m++){
+        for (int i = 0; i<n; i++){
+            for (int j = 0; j<n; j++){
+                auto uij = (*u)[i][j];
+                auto uim = (*u)[i][m];
+                auto umj = (*u)[m][j];
+                if((!uim)||(!umj)){
+                    continue;
+                }
+                else if (!uij){
+                    (*u)[i][j] = {uim.value()+umj.value()};
+                }
+                else {
+                    auto uplus = (uim.value()+umj.value());
+                    schedular.addComparison(&uij.value(), &uplus, &cmp_res);
+                    schedular.resolveComparisons();
+                    if (cmp_res!=ps_framework::Unresolved){
+                        if (cmp_res == ps_framework::GreaterThan){
+                            (*u)[i][j] = {(*u)[i][m].value()+(*u)[m][j].value()};
+                        }
+                        else if (cmp_res == ps_framework::EqualTo){
+                        }
+                        // Reset cmp value
+                        cmp_res = ps_framework::Unresolved;
+                    }
+                }
+            }
+        }
+    }
+    // Destroy things
+    delete mat;
+    delete u;
+    // Return e from pscore ;)
+    std::cout<<"["<<psCore.start<<",  "<<psCore.end<<"]"<<std::endl;
+    return psCore.end;
+}
 
 // A bit better approach also described in Megiddo '79
 // has time complexity O(n⁴log(n))
@@ -318,7 +320,7 @@ ps_framework::coro_task_void setMin(
 ) {
     std::cout << "2 lambda running" << std::endl;
     auto res = co_await cr->compare(uij.value(), uplus);
-    std::cout << "2 lambda running again" << std::endl;
+    std::cout << "2 lambda running again, res = "<< res << std::endl;
     if (res == ps_framework::GreaterThan) {
         std::cout << "inside if" << std::endl;
         (*u)[i][j] = {(*u)[i][m].value() + (*u)[m][j].value()};
@@ -350,11 +352,15 @@ ps_framework::coro_task_void ps_floyd(
                     auto task = new ps_framework::coro_task_void(setMin(cR, u,i,j,m,uplus,uij));
                     std::cout<<"1 lambda running again"<<std::endl;
                     co_await scheduler1->spawnDependent(task);
+//                    co_await std::suspend_always();
                     std::cout<<"1 lambda running again again"<<std::endl;
                 }
+//                co_await std::suspend_always();
             }
+            co_await std::suspend_always();
         }
         co_await std::suspend_always();
+//        co_await std::suspend_always();
         //        imp_scheduler.resolveCallbackComparisons();
     }
     co_return;
@@ -378,13 +384,14 @@ double testApproach () {
     auto task = new ps_framework::coro_task_void(ps_floyd(n, u, &comparisonResolver, &scheduler));
     scheduler.spawnIndependent(task);
     auto cmpResolverTask = comparisonResolver.resolveComparisons();
-    scheduler.spawnIndependentIntermediate(&cmpResolverTask);
+//    scheduler.spawnIndependentIntermediate(&cmpResolverTask);
     scheduler.run();
 
 // Destroy things
     delete mat;
     delete u;
     // Return e from pscore ;)
+    std::cout<<"["<<psCore.start<<",  "<<psCore.end<<"]"<<std::endl;
     return psCore.end;
 }
 
@@ -412,9 +419,9 @@ void bobTest() {
 
 int main(){
     bobTest();
-//    auto lambdaNA = naiveApproach();
+    auto lambdaNA = naiveApproach();
     auto lambdaBA = testApproach();
-//    std::cout << "naive approach lambda* = " << lambdaNA << std::endl;
+    std::cout << "naive approach lambda* = " << lambdaNA << std::endl;
     std::cout << "better approach lambda* = " << lambdaBA << std::endl;
 }
 

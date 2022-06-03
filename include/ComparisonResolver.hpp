@@ -37,13 +37,24 @@ namespace ps_framework {
                 // Check if comparison can be resolved directly without computing critical value
                 // Else ˇ
 //                cmpId = comparisonResolver->setCmpAndGetId(t1, t2);
+                // Set transferred flag to true
+                // This flag should also be cleared again!
+                h.promise().transferred = true;
                 // Spawn handler in scheduler
                 // (these should only run when resolveComparison has run one iteration)
-                comparisonResolver->scheduler->spawnHandler(&h);
+                std::cout<<"Spawning handler with ptr: "<<&h<<std::endl;
+                comparisonResolver->scheduler->spawnHandler(h.address());
                 // Also spawn critical value computation coroutine
                 // (this object should be dependent on these) use resolveComparisonId
 //                auto task = comparisonResolver->computeCriticalValue(t1, t2, cmpId);
 //                comparisonResolver->scheduler.spawn(task, (*(comparisonResolver->resolveComparisonId)));
+                // Check if we need to spawn the resolveComparisons coroutine
+                if (!comparisonResolver->isResolveComparisonsSpawned) {
+                    auto task = new coro_task_void(comparisonResolver->resolveComparisons());
+                    comparisonResolver->scheduler->spawnIndependentIntermediate(task);
+                    comparisonResolver->isResolveComparisonsSpawned = true;
+                }
+
             }
             cmp_res await_resume() {
                 std::cout<<"Resuming coroutine"<<std::endl;
@@ -75,6 +86,8 @@ namespace ps_framework {
         idType idCounter;
         // Should be removed shortly
         void generateCritVec(std::vector<criticalValueResult> *critVec);
+        // Used for spawning resolveComparisons
+        bool isResolveComparisonsSpawned;
     };
 }
 
@@ -89,6 +102,7 @@ ps_framework::ComparisonResolver<T>::ComparisonResolver(ps_framework::Scheduler 
     scheduler = s1;
     psCore = p1;
     iComparer = ic1;
+    isResolveComparisonsSpawned = false;
 };
 
 template <typename T>
@@ -103,6 +117,7 @@ void ps_framework::ComparisonResolver<T>::clearUpCmp(idType id) {
 
 template <typename T>
 ps_framework::coro_task_void ps_framework::ComparisonResolver<T>::computeCriticalValue(T t1, T t2, int id) {
+    std::cout<<"Computing cv"<<std::endl;
     // Compute critical value
     double cv = iComparer->getCriticalValue(t1, t2);
     if (std::isnan(cv)) {
@@ -113,6 +128,7 @@ ps_framework::coro_task_void ps_framework::ComparisonResolver<T>::computeCritica
     }
     // Set critical value
 //    criticalValueVec[id] = 1.0;
+    std::cout<<"Critical value computed"<<std::endl;
     co_return;
 }
 
@@ -161,9 +177,10 @@ ps_framework::coro_task_void ps_framework::ComparisonResolver<T>::resolveCompari
 //                  << val        // string's value
 //                  << std::endl;
 //        auto task = computeCriticalValue(std::get<0>(val), std::get<1>(val), id);
-        auto task = computeCriticalValue(val.first, val.second, id);
+//        auto task = new coro_task_void(computeCriticalValue(val.first, val.second, id));
+        auto task = new coro_task_void(computeCriticalValue(val.first, val.second, id));
         std::cout<<"spawning intermediate cv computing task"<<std::endl;
-        scheduler->spawnDependentIntermediate(&task);
+        scheduler->spawnDependentIntermediate(task);
         std::cout<<"spawned"<<std::endl;
     }
     //  co_suspend
@@ -187,8 +204,11 @@ ps_framework::coro_task_void ps_framework::ComparisonResolver<T>::resolveCompari
         auto t1 = (comparisonMap[cmpRes.index]).first;
         auto t2 = (comparisonMap[cmpRes.index]).second;
         auto res = iComparer->getCompareResult(t1,t2,cmpRes.compareResult);
+        std::cout<<"SETTING RES TO: "<< res << std::endl;
         setRes(cmpRes.index, res);
     }
+    // Reset spawn flag
+    isResolveComparisonsSpawned = false;
     // Set the actual comparison results into vector
     co_return;
 }

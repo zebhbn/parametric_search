@@ -166,6 +166,7 @@ namespace ps_framework {
 
         int id = -1;
         int parentId = -1;
+        bool transferred = false;
     };
 
 
