@@ -1,7 +1,7 @@
 //
 // Created by zeb on 06/04/2022.
 //
-#include "ps_interfaces.hpp"
+#include "PSInterfaces.hpp"
 
 #ifndef LINEARFUNCTION_HPP
 #define LINEARFUNCTION_HPP
@@ -46,8 +46,8 @@ namespace ps_framework {
     class LinearFunctionComparer : public ps_framework::IComparer<LinearFunction> {
         double getCriticalValue(LinearFunction*, LinearFunction*);
         double getCriticalValue(LinearFunction, LinearFunction);
-        cmp_res getCompareResult(LinearFunction*, LinearFunction*, cmp_res);
-        cmp_res getCompareResult(LinearFunction, LinearFunction, cmp_res);
+        CmpRes getCompareResult(LinearFunction*, LinearFunction*, CmpRes);
+        CmpRes getCompareResult(LinearFunction, LinearFunction, CmpRes);
     };
 }
 

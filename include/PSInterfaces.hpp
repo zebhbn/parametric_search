@@ -8,11 +8,6 @@
 
 namespace ps_framework {
 
-    class IParAlgo {
-    public:
-        virtual void run() = 0;
-    };
-
     class ISeqAlgo {
     public:
         virtual CmpRes compare(double lambda) = 0;
@@ -28,17 +23,6 @@ namespace ps_framework {
         virtual CmpRes getCompareResult(T, T, CmpRes) = 0;
     };
 
-    class IScheduler {
-    public:
-        virtual void spawn(coroTaskVoid*) = 0;
-//        virtual std::cor spawn() = 0;
-        virtual void run() = 0;
-    };
-
-    class IComparisonResolver {
-    public:
-        virtual void resolve() = 0;
-    };
 
     class IPSCore {
     public:

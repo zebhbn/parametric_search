@@ -18,8 +18,8 @@ double ps_framework::LinearFunctionComparer::getCriticalValue(LinearFunction * f
     return root;
 }
 
-ps_framework::cmp_res ps_framework::LinearFunctionComparer::
-    getCompareResult(LinearFunction *f1, LinearFunction *f2, cmp_res cmpRes) {
+ps_framework::CmpRes ps_framework::LinearFunctionComparer::
+    getCompareResult(LinearFunction *f1, LinearFunction *f2, CmpRes cmpRes) {
         // root was nan i.e. no intersection between lines
         if (cmpRes == Unresolved) {
             // If no intersection then compare b values of lines
@@ -47,7 +47,7 @@ ps_framework::cmp_res ps_framework::LinearFunctionComparer::
         }
 }
 
-ps_framework::cmp_res ps_framework::LinearFunctionComparer::getCompareResult(LinearFunction f1, LinearFunction f2, cmp_res cmpRes) {
+ps_framework::CmpRes ps_framework::LinearFunctionComparer::getCompareResult(LinearFunction f1, LinearFunction f2, CmpRes cmpRes) {
     return getCompareResult(&f1,&f2,cmpRes);
 }
 
