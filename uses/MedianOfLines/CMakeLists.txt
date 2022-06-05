@@ -7,11 +7,11 @@ include_directories(../../include)
 link_directories(../../include)
 add_subdirectory(../../include includenew)
 
-add_library(graphGenerator GraphGenerators.hpp)
+#add_library(graphGenerator GraphGenerators.hpp)
 
-add_executable(mrc mrc.cpp)
+add_executable(medianOfLines medianOfLines.cpp)
 
 target_link_libraries(Scheduler CoTask)
-target_link_libraries(graphGenerator linearfunctions)
 target_link_libraries(ComparisonResolver Scheduler CoTask)
-target_link_libraries(mrc linearfunctions graphGenerator CoTask ComparisonResolver Scheduler)
+target_link_libraries(psQuicksort ComparisonResolver Scheduler CoTask)
+target_link_libraries(medianOfLines linearfunctions CoTask ComparisonResolver Scheduler)

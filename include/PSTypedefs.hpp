@@ -1,3 +1,4 @@
+#include <atomic>
 
 #ifndef PS_TYPEDEFS
 #define PS_TYPEDEFS
@@ -5,7 +6,7 @@
 namespace ps_framework {
 
     // Used for comparison results
-    enum cmp_res {
+    enum CmpRes {
         LessThan,
         EqualTo,
         GreaterThan,
@@ -15,12 +16,16 @@ namespace ps_framework {
         Unresolved
     };
 
+    using CriticalValue = double;
+    using AtomicId = std::atomic_uint32_t;
+    using IdType = uint32_t;
+
     // Used to store critical values combined with
     // comparison results and indexes
-    struct criticalValueResult{
-        double criticalValue;
-        cmp_res compareResult;
-        int index;
+    struct CmpCvResult{
+        CriticalValue criticalValue;
+        CmpRes compareResult;
+        IdType index;
     };
 }
 

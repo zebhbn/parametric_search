@@ -5,22 +5,23 @@
 #ifndef MEDIANOFLINES_PSCORE_HPP
 #define MEDIANOFLINES_PSCORE_HPP
 
-#include "ps_interfaces.hpp"
+#include "PSInterfaces.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace ps_framework {
     class PSCore : public ps_framework::IPSCore {
     public:
         PSCore(ISeqAlgo*);
         PSCore(ISeqAlgo*, double, double);
-        void runCompareList(std::vector<ps_framework::criticalValueResult> *);
+        void runCompareList(std::vector<ps_framework::CmpCvResult> *);
         double start;
         double end;
     private:
         ISeqAlgo *seqAlgo;
         bool isInInterval(double);
-        cmp_res compareToLambdaStar(double);
-        void binarySearch(std::vector<ps_framework::criticalValueResult> *);
+        CmpRes compareToLambdaStar(double);
+        void binarySearch(std::vector<ps_framework::CmpCvResult> *);
     };
 }
 
@@ -34,15 +35,16 @@ bool ps_framework::PSCore::isInInterval(double x) {
     return (x>start && x<end);
 }
 
-ps_framework::cmp_res ps_framework::PSCore::compareToLambdaStar(double x) {
-    if(std::isnan(x)){
-        return Unresolved;
-    }
+ps_framework::CmpRes ps_framework::PSCore::compareToLambdaStar(double x) {
+//    if(std::isnan(x)){
+//        return Unresolved;
+//    }
     // Check if value is outside searching interval
-    else if (!isInInterval(x)){
-        if (x<=start) {return LessThan;}
-        else if (x>=end) {return GreaterThan;}
-        else {assert(false);}
+//    else if (!isInInterval(x)){
+    if (!isInInterval(x)){
+            if (x<=start) {return LessThan;}
+            else if (x>=end) {return GreaterThan;}
+            else {assert(false);}
     }
 
     // We have to do it the hard way now
@@ -57,7 +59,7 @@ ps_framework::cmp_res ps_framework::PSCore::compareToLambdaStar(double x) {
 ps_framework::PSCore::PSCore(ISeqAlgo *seqAlgo, double start, double end) :
         seqAlgo(seqAlgo), start(start), end(end) {}
 
-void ps_framework::PSCore::binarySearch(std::vector<ps_framework::criticalValueResult> * vec) {
+void ps_framework::PSCore::binarySearch(std::vector<ps_framework::CmpCvResult> * vec) {
     // Initialize binary searching interval
     int e = 0;
     int f = vec->size() - 1;
@@ -89,7 +91,7 @@ void ps_framework::PSCore::binarySearch(std::vector<ps_framework::criticalValueR
     }
 }
 
-void ps_framework::PSCore::runCompareList(std::vector<ps_framework::criticalValueResult> *vec) {
+void ps_framework::PSCore::runCompareList(std::vector<CmpCvResult> *vec) {
     // Run binary search
     binarySearch(vec);
 
