@@ -8,12 +8,12 @@ Follow the steps to compile and run the median of lines example.
 1. Navigate to the `uses/median_of_lines` directory.
 2. Run `cmake ./`
 3. Run `make`
-4. Finally execute `./median_of_lines` 
+4. Finally execute `./medianOfLines` 
 
 
 ### Minimum ratio cycle
 1. Navigate to the `uses/MinimumRatioCycle` directory.
 2. Run `cmake ./`
 3. Run `make`
-4. Finally execute `./` 
+4. Finally execute `./mrc` 
 
