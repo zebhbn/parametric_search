@@ -9,6 +9,8 @@
 #include <optional>
 #include "LinearFunction.hpp"
 #include "GraphGenerators.hpp"
+#include "MultiTScheduler.hpp"
+#include "MultiTComparisonResolver.hpp"
 
 auto inf = std::numeric_limits<double>::infinity();
 
@@ -170,6 +172,11 @@ double approach () {
             &psCore,
             &linComparer
     );
+    ps_framework::MultiTComparisonResolver testRes = ps_framework::ComparisonResolver<ps_framework::LinearFunction>(
+            &scheduler,
+            &psCore,
+            &linComparer
+    );
     auto task = new ps_framework::coroTaskVoid(psFloyd(n, u, &comparisonResolver, &scheduler));
     scheduler.spawnIndependent(task);
     auto cmpResolverTask = comparisonResolver.resolveComparisons();
@@ -184,6 +191,7 @@ double approach () {
 }
 
 int main(){
+    auto multiSched = ps_framework::MultiTScheduler();
     auto lambda = approach();
     std::cout << "approach lambda* = " << lambda << std::endl;
     std::cout << "5/7 = " << 5.0/7.0 << std::endl;

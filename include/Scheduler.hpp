@@ -20,7 +20,7 @@ namespace ps_framework {
             bool await_ready() { return false; }
             bool await_suspend(std::coroutine_handle<promise_type_void> h) {
                 // Increment id dependent counter
-                scheduler->idCounter[h.promise().id]++;
+                scheduler->incrementId(h.promise().id);
                 dependentTask->handle_.promise().parentId = h.promise().id;
                 // Resume the current coroutine
                 return false;
@@ -36,7 +36,7 @@ namespace ps_framework {
 //        void spawnHandler(void* coroPointer);
 
 
-    private:
+    protected:
         std::map<int, int> idCounter;
         std::queue<coroTaskVoid*> activeTasks;
         std::map<int, coroTaskVoid*> pendingTasks;
@@ -50,9 +50,15 @@ namespace ps_framework {
         void runActiveTasks();
         void runActiveIntermediateTasks();
         void runHandlers();
+        void incrementId(int id);
     };
 
 }
+
+void ps_framework::Scheduler::incrementId(int id) {
+    idCounter[id]++;
+}
+
 
 int ps_framework::Scheduler::getNewId() {
     return ++atomicId;
@@ -107,6 +113,7 @@ void ps_framework::Scheduler::spawnHandler(std::coroutine_handle<promise_type_vo
     // Push handler to handle queue
     handleTaskAddrs.push(handler->address());
 }
+
 
 void ps_framework::Scheduler::runActiveTasks() {
     while (!activeTasks.empty()){

@@ -41,11 +41,7 @@ namespace ps_framework {
                 // (these should only run when resolveComparison has run one iteration)
                 comparisonResolver->scheduler->spawnHandler(&h);
                 // Check if we need to spawn the resolveComparisons coroutine
-                if (!comparisonResolver->isResolveComparisonsSpawned) {
-                    auto task = new coroTaskVoid(comparisonResolver->resolveComparisons());
-                    comparisonResolver->scheduler->spawnIndependentIntermediate(task);
-                    comparisonResolver->isResolveComparisonsSpawned = true;
-                }
+                comparisonResolver->spawnMe();
 
             }
             CmpRes await_resume() {
@@ -54,12 +50,14 @@ namespace ps_framework {
                 return tmp;
             }
         };
-    private:
+    protected:
         auto getNewId();
         IdType setCmpAndGetId(T t1, T t2);
         CmpRes getRes(IdType id);
         void setRes(IdType id, CmpRes);
         void clearUpCmp(IdType id);
+        void spawnMe();
+        void resetIsSpawned();
         coroTaskVoid computeCriticalValue(T t1, T t2, int id);
         std::map<IdType, double> criticalValueMap;
         std::map<IdType, std::pair<T,T>> comparisonMap;
@@ -76,6 +74,20 @@ namespace ps_framework {
 }
 
 template <typename T>
+void ps_framework::ComparisonResolver<T>::spawnMe() {
+    if (!isResolveComparisonsSpawned) {
+        auto task = new coroTaskVoid(resolveComparisons());
+        scheduler->spawnIndependentIntermediate(task);
+        isResolveComparisonsSpawned = true;
+    }
+}
+
+template <typename T>
+void ps_framework::ComparisonResolver<T>::resetIsSpawned() {
+    isResolveComparisonsSpawned = false;
+}
+
+template <typename T>
 auto ps_framework::ComparisonResolver<T>::getNewId() {
     return ++idCounter;;
 }
@@ -86,7 +98,7 @@ ps_framework::ComparisonResolver<T>::ComparisonResolver(ps_framework::Scheduler 
     scheduler = s1;
     psCore = p1;
     iComparer = ic1;
-    isResolveComparisonsSpawned = false;
+    resetIsSpawned();
 };
 
 template <typename T>
@@ -172,7 +184,7 @@ ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::resolveCompariso
         setRes(cmpRes.index, res);
     }
     // Reset spawn flag
-    isResolveComparisonsSpawned = false;
+    resetIsSpawned();
     // Set the actual comparison results into vector
     co_return;
 }
