@@ -22,10 +22,10 @@ namespace ps_framework {
 
         void sort();
 
-    private:
+    protected:
         coroTaskVoid partition(int, int, int*);
         coroTaskVoid quicksort(int, int);
-        void swap(int, int);
+        virtual void swap(int, int);
 //        coroTaskVoid cmp(ComparisonResolver<T> * cv, T elm, T pivot, int *pi, int j);
 
         Scheduler *scheduler;

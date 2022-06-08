@@ -15,6 +15,7 @@ namespace ps_framework {
     class MultiTScheduler : public Scheduler {
     public:
         MultiTScheduler();
+        MultiTScheduler(int numThreads);
         void run();
         void spawnIndependent(coroTaskVoid *task);
         void spawnIndependentIntermediate(coroTaskVoid *task);
@@ -59,6 +60,9 @@ void ps_framework::MultiTScheduler::incrementId(int id) {
     cv_idCounter.notify_one();
 }
 
+ps_framework::MultiTScheduler::MultiTScheduler(int numThreads) {
+    threadPool = new ThreadPool(numThreads);
+}
 
 ps_framework::MultiTScheduler::MultiTScheduler() {
     threadPool = new ThreadPool();

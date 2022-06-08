@@ -164,11 +164,11 @@ void ps_framework::Scheduler::runActiveTasks() {
                 }
             }
             // The task is done so we will destroy it
-            std::cout << "Destroying handler" << std::endl;
+//            std::cout << "Destroying handler" << std::endl;
             activeTasks.front()->destroyHandler();
-            std::cout << "Deleting" << std::endl;
+//            std::cout << "Deleting" << std::endl;
 //            delete activeTasks.front();
-            std::cout << "Deleted" << std::endl;
+//            std::cout << "Deleted" << std::endl;
         }
         // Remove from queue
         activeTasks.pop();
