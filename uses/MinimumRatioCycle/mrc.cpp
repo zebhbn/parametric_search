@@ -11,8 +11,13 @@
 #include "GraphGenerators.hpp"
 #include "MultiTScheduler.hpp"
 #include "MultiTComparisonResolver.hpp"
+#include <mutex>
+#include <condition_variable>
 
 auto inf = std::numeric_limits<double>::infinity();
+std::mutex setMutex;
+std::condition_variable setCV;
+
 
 // This should amount to a negative cycle detection algorithm
 class SeqAlgoMinimumMeanCycle : public ps_framework::ISeqAlgo{
@@ -108,6 +113,17 @@ std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * generate
 }
 
 
+void setValue(auto u, auto i, auto j, std::optional<ps_framework::LinearFunction> elm) {
+    // Lock or wait
+    std::unique_lock lock(setMutex);
+    setCV.wait(lock, []{return true;});
+    // Set value
+    (*u)[i][j] = elm;
+    // Unlock
+    lock.unlock();
+    setCV.notify_one();
+}
+
 
 ps_framework::coroTaskVoid setMin(
         ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cr,
@@ -119,8 +135,10 @@ ps_framework::coroTaskVoid setMin(
         auto uij
 ) {
     auto res = co_await cr->compare(uij.value(), uplus);
+//    std::cout<<"Set Min resumed"<<std::endl;
     if (res == ps_framework::GreaterThan) {
-        (*u)[i][j] = {(*u)[i][m].value() + (*u)[m][j].value()};
+//        (*u)[i][j] = {(*u)[i][m].value() + (*u)[m][j].value()};
+        setValue(u, i, j, {(*u)[i][m].value() + (*u)[m][j].value()});
     }
 }
 
@@ -140,12 +158,14 @@ ps_framework::coroTaskVoid psFloyd(
                     continue;
                 }
                 else if (!uij){
-                    (*u)[i][j] = {uim.value()+umj.value()};
+//                    (*u)[i][j] = {uim.value()+umj.value()};
+                    setValue(u,i,j,{uim.value()+umj.value()});
                 }
                 else {
                     auto uplus = (uim.value()+umj.value());
                     //                    imp_scheduler.addComparison(&uij.value(), &uplus, &cmp_res[i][j]);
                     auto task = new ps_framework::coroTaskVoid(setMin(cR, u, i, j, m, uplus, uij));
+//                    std::cout<<"Spawning task"<<std::endl;
                     co_await scheduler1->spawnDependent(task);
                 }
             }
@@ -165,21 +185,21 @@ double approach () {
 
     auto psCore = ps_framework::PSCore(&seqAlgo);
     auto linComparer = ps_framework::LinearFunctionComparer();
-//    auto imp_scheduler = ps_framework::ImprovedScheduler<ps_framework::LinearFunction>(&psCore, &linComparer);
-    ps_framework::Scheduler scheduler = ps_framework::Scheduler();
-    ps_framework::ComparisonResolver comparisonResolver = ps_framework::ComparisonResolver<ps_framework::LinearFunction>(
+//    ps_framework::Scheduler scheduler = ps_framework::Scheduler();
+    ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler();
+//    ps_framework::ComparisonResolver comparisonResolver = ps_framework::ComparisonResolver<ps_framework::LinearFunction>(
+//            &scheduler,
+//            &psCore,
+//            &linComparer
+//    );
+    ps_framework::MultiTComparisonResolver comparisonResolver = ps_framework::MultiTComparisonResolver<ps_framework::LinearFunction>(
             &scheduler,
             &psCore,
             &linComparer
     );
-    ps_framework::MultiTComparisonResolver testRes = ps_framework::ComparisonResolver<ps_framework::LinearFunction>(
-            &scheduler,
-            &psCore,
-            &linComparer
-    );
+
     auto task = new ps_framework::coroTaskVoid(psFloyd(n, u, &comparisonResolver, &scheduler));
     scheduler.spawnIndependent(task);
-    auto cmpResolverTask = comparisonResolver.resolveComparisons();
     scheduler.run();
 
 // Destroy things
@@ -191,9 +211,9 @@ double approach () {
 }
 
 int main(){
-    auto multiSched = ps_framework::MultiTScheduler();
     auto lambda = approach();
     std::cout << "approach lambda* = " << lambda << std::endl;
     std::cout << "5/7 = " << 5.0/7.0 << std::endl;
+    exit(0);
 }
 

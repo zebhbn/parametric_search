@@ -33,6 +33,7 @@ ps_framework::ThreadPool::ThreadPool() {
     stopped = false;
     workingThreads = 0;
     int numThreads = std::thread::hardware_concurrency();
+//    int numThreads = 1;
     threadVec.reserve(numThreads);
     for (int i = 0; i<numThreads; i++){
 //        threadVec.push_back(std::thread([this]{this->loopFunc();}));
@@ -58,6 +59,8 @@ void ps_framework::ThreadPool::loopFunc() {
         cv_job.notify_one();
         // Run coroutine until suspended
         job->resume();
+        job->destroyHandler();
+        delete job;
         // Lock mutex or wait until unlocked
 //        cv_finished.wait(lock);
         lock.lock();
@@ -78,6 +81,11 @@ void ps_framework::ThreadPool::waitUntilFinished() {
 void ps_framework::ThreadPool::AddJob(ps_framework::coroTaskVoid* job){
     {
         std::unique_lock<std::mutex> lock(qMutex);
+//        auto tmp = jobQueue;
+//        while (!tmp.empty()) {
+//            std::cout<<"    ID: "<<tmp.front()->handle_.promise().id<<std::endl;
+//            tmp.pop();
+//        }
         jobQueue.push(job);
     }
     cv_job.notify_one();

@@ -17,22 +17,30 @@ namespace ps_framework {
         struct schedulerAwaitable{
             Scheduler* scheduler;
             coroTaskVoid *dependentTask;
+            coroTaskVoid *spawnJob;
             bool await_ready() { return false; }
             bool await_suspend(std::coroutine_handle<promise_type_void> h) {
                 // Increment id dependent counter
                 scheduler->incrementId(h.promise().id);
                 dependentTask->handle_.promise().parentId = h.promise().id;
+                // Run spawning task (so that we first spawn after everything has been set)
+//                std::cout<<"checking if spawn job is non null"<<std::endl;
+                if (spawnJob) {
+                    spawnJob->resume();
+                    spawnJob->destroyHandler();
+                    delete spawnJob;
+                }
                 // Resume the current coroutine
                 return false;
             }
             void await_resume() {return;}
         };
-        void run();
-        void spawnIndependent(coroTaskVoid *task);
-        void spawnIndependentIntermediate(coroTaskVoid *task);
-        schedulerAwaitable spawnDependent(coroTaskVoid *task);
-        schedulerAwaitable spawnDependentIntermediate(coroTaskVoid *task);
-        void spawnHandler(std::coroutine_handle<promise_type_void> *handler);
+        virtual void run();
+        virtual void spawnIndependent(coroTaskVoid *task);
+        virtual void spawnIndependentIntermediate(coroTaskVoid *task);
+        virtual schedulerAwaitable spawnDependent(coroTaskVoid *task);
+        virtual schedulerAwaitable spawnDependentIntermediate(coroTaskVoid *task);
+        virtual void spawnHandler(std::coroutine_handle<promise_type_void> *handler);
 //        void spawnHandler(void* coroPointer);
 
 
@@ -95,7 +103,7 @@ ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDepend
     // Push to active tasks
     activeIntermediateTasks.push(task);
     // Return awaitable
-    return schedulerAwaitable{this, task};
+    return schedulerAwaitable{this, task, nullptr};
 };
 
 ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDependent(coroTaskVoid *task) {
@@ -105,7 +113,7 @@ ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDepend
     // Push to active tasks
     activeTasks.push(task);
     // Return awaitable
-    return schedulerAwaitable{this, task};
+    return schedulerAwaitable{this, task, nullptr};
 };
 
 void ps_framework::Scheduler::spawnHandler(std::coroutine_handle<promise_type_void> *handler) {
@@ -126,6 +134,7 @@ void ps_framework::Scheduler::runActiveTasks() {
         // Run task
         activeTasks.front()->resume();
         if (activeTasks.front()->handle_.promise().transferred) {
+            delete activeTasks.front();
             activeTasks.pop();
             continue;
         }
@@ -155,7 +164,11 @@ void ps_framework::Scheduler::runActiveTasks() {
                 }
             }
             // The task is done so we will destroy it
-            activeTasks.front()->destroyMe();
+            std::cout << "Destroying handler" << std::endl;
+            activeTasks.front()->destroyHandler();
+            std::cout << "Deleting" << std::endl;
+//            delete activeTasks.front();
+            std::cout << "Deleted" << std::endl;
         }
         // Remove from queue
         activeTasks.pop();
@@ -194,7 +207,8 @@ void ps_framework::Scheduler::runActiveIntermediateTasks() {
                 }
             }
             // The task is done so we will destroy it
-            activeIntermediateTasks.front()->destroyMe();
+            activeIntermediateTasks.front()->destroyHandler();
+            delete activeIntermediateTasks.front();
         }
         // Remove from queue
         activeIntermediateTasks.pop();
