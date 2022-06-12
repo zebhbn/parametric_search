@@ -3,8 +3,8 @@ A C++ Framework for easy implementation of
 parametric search based algorithms.
 
 ## Examples
+Follow the steps to compile and run the examples.
 ### Median of lines
-Follow the steps to compile and run the median of lines example.
 1. Navigate to the `uses/MedianOfLines` directory.
 2. Run `cmake ./`
 3. Run `make`
