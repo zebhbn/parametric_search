@@ -5,7 +5,6 @@
 #include "CoTask.hpp"
 #include "Scheduler.hpp"
 #include "ComparisonResolver.hpp"
-#include "DirectComparisonResolver.hpp"
 #include <optional>
 #include "LinearFunction.hpp"
 #include "MultiTScheduler.hpp"

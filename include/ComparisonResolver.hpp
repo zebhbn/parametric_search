@@ -13,9 +13,6 @@
 
 #ifndef TEST_COMPARISONRESOLVER_HPP
 #define TEST_COMPARISONRESOLVER_HPP
-//using IdType = std::atomic_uint64_t;
-
-//using IdType = int;
 
 namespace ps_framework {
     struct await_data {
@@ -31,8 +28,6 @@ namespace ps_framework {
             IdType cmpId;
             ComparisonResolver<T> *comparisonResolver;
             CmpRes directRes;
-//            T t1;
-//            T t2;
             bool await_ready() { return false; }
             bool await_suspend(std::coroutine_handle<promise_type_void> h) {
                 if (directRes == Unresolved) {
@@ -41,7 +36,6 @@ namespace ps_framework {
                     h.promise().transferred = true;
                     // Spawn handler in scheduler
                     // (these should only run when resolveComparison has run one iteration)
-//                std::cout<<"Spawning Handler"<<std::endl;
                     comparisonResolver->scheduler->spawnHandler(&h);
                     // Check if we need to spawn the resolveComparisons coroutine
                     comparisonResolver->spawnMe();
@@ -91,7 +85,6 @@ namespace ps_framework {
 
 template <typename T>
 void ps_framework::ComparisonResolver<T>::spawnMe() {
-//    std::cout<<"Spawning myself"<<std::endl;
     if (!isResolveComparisonsSpawned) {
         auto task = new coroTaskVoid(resolveComparisons());
         scheduler->spawnIndependentIntermediate(task);
@@ -130,14 +123,8 @@ void ps_framework::ComparisonResolver<T>::clearUpCmp(IdType id) {
 
 template <typename T>
 ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::computeCriticalValue(T t1, T t2, int id) {
-//    std::cout<<"Doing job"<<std::endl;
     // Compute critical value
     double cv = iComparer->getCriticalValue(t1, t2);
-//    if ((cv > 0.714) && (cv < 0.715)) {
-//        std::cout<<"bob"<<std::endl;
-//        std::cout<<t1<<std::endl;
-//        std::cout<<t2<<std::endl;
-//    }
     if (std::isnan(cv)) {
         setRes(id, iComparer->getCompareResult(t1,t2,Unresolved));
     }
@@ -182,11 +169,9 @@ void ps_framework::ComparisonResolver<T>::generateCmpCvVec(std::vector<CmpCvResu
 
 template <typename T>
 ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::resolveComparisons() {
-//    std::cout << "Resolving comparisons" << std::endl;
     // Generate coroutines for computation of critical values
     for (auto const& [id, val] : comparisonMap) {
         auto task = new coroTaskVoid(computeCriticalValue(val.first, val.second, id));
-//        std::cout << "Spanwning" << std::endl;
         co_await scheduler->spawnDependentIntermediate(task);
     }
     //  Suspend if necessary

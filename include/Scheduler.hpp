@@ -24,7 +24,6 @@ namespace ps_framework {
                 scheduler->incrementId(h.promise().id);
                 dependentTask->handle_.promise().parentId = h.promise().id;
                 // Run spawning task (so that we first spawn after everything has been set)
-//                std::cout<<"checking if spawn job is non null"<<std::endl;
                 if (spawnJob) {
                     spawnJob->resume();
                     spawnJob->destroyHandler();
@@ -41,7 +40,6 @@ namespace ps_framework {
         virtual schedulerAwaitable spawnDependent(coroTaskVoid *task);
         virtual schedulerAwaitable spawnDependentIntermediate(coroTaskVoid *task);
         virtual void spawnHandler(std::coroutine_handle<promise_type_void> *handler);
-//        void spawnHandler(void* coroPointer);
 
 
     protected:
@@ -50,7 +48,6 @@ namespace ps_framework {
         std::map<int, coroTaskVoid*> pendingTasks;
         std::queue<coroTaskVoid*> activeIntermediateTasks;
         std::map<int, coroTaskVoid*> pendingIntermediateTasks;
-//        std::queue<std::coroutine_handle<promise_type_void>*> handleTasks;
         std::queue<void*> handleTaskAddrs;
         std::atomic_int atomicId;
         int getNewId();
@@ -117,7 +114,6 @@ ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDepend
 };
 
 void ps_framework::Scheduler::spawnHandler(std::coroutine_handle<promise_type_void> *handler) {
-//void ps_framework::Scheduler::spawnHandler(void *coroPointer) {
     // Push handler to handle queue
     handleTaskAddrs.push(handler->address());
 }
@@ -127,10 +123,6 @@ void ps_framework::Scheduler::runActiveTasks() {
     while (!activeTasks.empty()){
         // Print queue status
         auto tmp = activeTasks;
-//        while (!tmp.empty()) {
-//            std::cout<<"    ID: "<<tmp.front()->handle_.promise().id<<std::endl;
-//            tmp.pop();
-//        }
         // Run task
         activeTasks.front()->resume();
         if (activeTasks.front()->handle_.promise().transferred) {
@@ -164,11 +156,8 @@ void ps_framework::Scheduler::runActiveTasks() {
                 }
             }
             // The task is done so we will destroy it
-//            std::cout << "Destroying handler" << std::endl;
             activeTasks.front()->destroyHandler();
-//            std::cout << "Deleting" << std::endl;
 //            delete activeTasks.front();
-//            std::cout << "Deleted" << std::endl;
         }
         // Remove from queue
         activeTasks.pop();
@@ -217,11 +206,9 @@ void ps_framework::Scheduler::runActiveIntermediateTasks() {
 
 
 void ps_framework::Scheduler::runHandlers() {
-//    std::cout<<"Running handlers, size of queue: "<<handleTasks.size()<<std::endl;
     while (!handleTaskAddrs.empty()) {
         // Run task
         auto handler = std::coroutine_handle<promise_type_void>::from_address(handleTaskAddrs.front());
-//        std::cout << "Running handler with ID: " << handler.promise().id << std::endl;
 
         handler.resume();
         auto parentId = handler.promise().parentId;
@@ -244,20 +231,14 @@ void ps_framework::Scheduler::runHandlers() {
 
 
 void ps_framework::Scheduler::run(){
-//    while ((!activeTasks.empty()) || (!activeIntermediateTasks.empty()) || (!handleTasks.empty()) ) {
     while ((!activeTasks.empty()) || (!activeIntermediateTasks.empty()) || (!handleTaskAddrs.empty()) ) {
         // Run active tasks
         runActiveTasks();
-//        std::cout<<"Finished active tasks"<<std::endl;
         // Run intermediate tasks
         runActiveIntermediateTasks();
-//        std::cout<<"Finished intermediate tasks"<<std::endl;
         // Run handlers
         runHandlers();
-//        std::cout<<"Finished handler tasks"<<std::endl;
 //
-//        std::cout<<"Pending queue size: "<<pendingTasks.size()<<std::endl;
-//        std::cout<<"Pending inter queue size: "<<pendingIntermediateTasks.size()<<std::endl;
     }
 }
 
