@@ -34,7 +34,6 @@ namespace ps_framework{
         void setRes(IdType id, CmpRes res);
         void clearUpCmp(IdType id);
         IdType setCmpAndGetId(T t1, T t2);
-//        void generateCmpCvVec(std::vector<CmpCvResult> *cmpCvVec);
         using ComparisonResolver<T>::iComparer;
         using ComparisonResolver<T>::criticalValueMap;
         using ComparisonResolver<T>::resMap;
@@ -155,20 +154,5 @@ ps_framework::IdType ps_framework::MultiTComparisonResolver<T>::setCmpAndGetId(T
     comparisonMapCV.notify_one();
     return id;
 }
-
-// Generates criticalValueResult vector (should be removed when psCore has been rewritten)
-//template <typename T>
-//void ps_framework::MultiTComparisonResolver<T>::generateCmpCvVec(std::vector<CmpCvResult> *cmpCvVec) {
-//    for (auto const& [id, cVal] : criticalValueMap) {
-//        // index
-//        struct CmpCvResult cvr = {
-//                cVal,
-//                Unresolved,
-//                id
-//        };
-//        // Push data to vector
-//        cmpCvVec->push_back(cvr);
-//    }
-//}
 
 #endif //MINIMUMMEANCYCLE_MULTITCOMPARISONRESOLVER_HPP

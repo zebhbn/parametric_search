@@ -22,11 +22,9 @@ class SeqAlgoMinimumRatioCycle : public ps_framework::ISeqAlgo{
 public:
     SeqAlgoMinimumRatioCycle(std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> *fs){
         p_funcs = fs;
-//        counter = 0;
     }
 
     ps_framework::CmpRes compare(double lambda){
-//        counter++;
         int n = p_funcs->size();
         std::vector<std::vector<double>> dist(n, std::vector<double> (n, std::numeric_limits<double>::infinity()));
         // Set the edge values in the dist matrix
@@ -121,8 +119,6 @@ public:
                   << std::endl
                   << "    time    = "
                   << duration
-//                  << "  sequAlgo  = "
-//                  << seqAlgo.counter
                   << std::endl;
     }
     std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * mat;
@@ -159,48 +155,6 @@ public:
             ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cR,
             ps_framework::Scheduler *scheduler1
     ) {
-//        std::cout<<"Starting ps floyd task"<<std::endl;
-        for (int m = 0; m<n; m++){
-            for (int i = 0; i<n; i++){
-                for (int j = 0; j<n; j++){
-                    auto uij = (*u)[i][j];
-                    auto uim = (*u)[i][m];
-                    auto umj = (*u)[m][j];
-                    if((!uim)||(!umj)){
-                        continue;
-                    }
-                    else if (!uij){
-//                    (*u)[i][j] = {uim.value()+umj.value()};
-                        setValue(u,i,j,{uim.value()+umj.value()});
-                    }
-                    else {
-                        auto uplus = (uim.value()+umj.value());
-                        //                    imp_scheduler.addComparison(&uij.value(), &uplus, &cmp_res[i][j]);
-                        auto task = new ps_framework::coroTaskVoid(setMin(cR, u, i, j, m, uplus, uij));
-//                    std::cout<<"Spawning task"<<std::endl;
-                        co_await scheduler1->spawnDependent(task);
-                        co_await std::suspend_always();
-                    }
-                }
-            }
-//            co_await std::suspend_always();
-        }
-//        std::cout<<"Finished ps floyd task"<<std::endl;
-        co_return;
-    }
-};
-
-
-class NaivePSFloyd : public PSFloyd {
-
-public:
-    NaivePSFloyd(auto mat, auto u) : PSFloyd(mat,u) {}
-    ps_framework::coroTaskVoid psFloyd(
-            auto n,
-            auto u,
-            ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cR,
-            ps_framework::Scheduler *scheduler1
-    ) {
         for (int m = 0; m<n; m++){
             for (int i = 0; i<n; i++){
                 for (int j = 0; j<n; j++){
@@ -217,15 +171,17 @@ public:
                         auto uplus = (uim.value()+umj.value());
                         auto task = new ps_framework::coroTaskVoid(setMin(cR, u, i, j, m, uplus, uij));
                         co_await scheduler1->spawnDependent(task);
-                        co_await std::suspend_always();
                     }
                 }
             }
-//            co_await std::suspend_always();
+            // Only suspend when we have spawned all comparison tasks
+            co_await std::suspend_always();
         }
         co_return;
     }
 };
+
+
 
 class MultiPSFloyd : public PSFloyd {
 public:
@@ -237,7 +193,6 @@ public:
                           int j,
                           std::optional<ps_framework::LinearFunction> elm) override {
         // Lock or wait
-//        std::cout<<"Setting value"<<std::endl;
         std::unique_lock lock(setMutex);
         setCV.wait(lock, []{return true;});
         // Set value
@@ -248,15 +203,10 @@ public:
     }
 
     void run(){
-//        std::cout<<"Bob"<<std::endl;
         auto seqAlgo = SeqAlgoMinimumRatioCycle(mat);
         auto psCore = ps_framework::PSCore(&seqAlgo);
         auto linComparer = ps_framework::LinearFunctionComparer();
         ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler(numThreads);
-//        if (numThreads)
-//            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler(numThreads);
-//        else
-//            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler();
 
         auto comparisonResolver = ps_framework::MultiTComparisonResolver<ps_framework::LinearFunction>(
                 &scheduler,

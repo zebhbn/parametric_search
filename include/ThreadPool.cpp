@@ -1,8 +1,4 @@
 //
-// Created by zeb on 06/06/2022.
-//
-
-//
 // Created by zeb on 14/04/2022.
 //
 
@@ -33,10 +29,8 @@ ps_framework::ThreadPool::ThreadPool() {
     stopped = false;
     workingThreads = 0;
     int numThreads = std::thread::hardware_concurrency();
-//    int numThreads = 1;
     threadVec.reserve(numThreads);
     for (int i = 0; i<numThreads; i++){
-//        threadVec.push_back(std::thread([this]{this->loopFunc();}));
         threadVec.push_back(std::thread(&ThreadPool::loopFunc,this));
     }
 }
@@ -81,11 +75,6 @@ void ps_framework::ThreadPool::waitUntilFinished() {
 void ps_framework::ThreadPool::AddJob(ps_framework::coroTaskVoid* job){
     {
         std::unique_lock<std::mutex> lock(qMutex);
-//        auto tmp = jobQueue;
-//        while (!tmp.empty()) {
-//            std::cout<<"    ID: "<<tmp.front()->handle_.promise().id<<std::endl;
-//            tmp.pop();
-//        }
         jobQueue.push(job);
     }
     cv_job.notify_one();

@@ -25,7 +25,6 @@ namespace ps_framework {
     private:
         void loopFunc();
         std::queue<coroTaskVoid *> jobQueue;
-        int numberOfThreads;
         std::vector<std::thread> threadVec;
         std::mutex qMutex;
         std::condition_variable cv_job;

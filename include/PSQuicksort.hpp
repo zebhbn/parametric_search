@@ -13,7 +13,6 @@ namespace ps_framework {
     class PSQuicksort {
     public:
         PSQuicksort(
-//                PSFramework<T> *psfw,
                 Scheduler *scheduler,
                 ComparisonResolver<T> *comparisonResolver,
                 std::vector<T> *vec
@@ -28,7 +27,6 @@ namespace ps_framework {
         coroTaskVoid randomPartition(int, int, int*);
         coroTaskVoid quicksort(int, int);
         virtual void swap(int, int);
-//        coroTaskVoid cmp(ComparisonResolver<T> * cv, T elm, T pivot, int *pi, int j);
 
         Scheduler *scheduler;
         ComparisonResolver<T> *comparisonResolver;
@@ -52,10 +50,6 @@ void ps_framework::PSQuicksort<T>::sort() {
     scheduler->run();
 }
 
-// For testing purposes
-//template <typename T>
-//ps_framework::PSQuicksort<T>::PSQuicksort() {};
-
 template <typename T>
 void ps_framework::PSQuicksort<T>::swap(int i, int j) {
     // Should have mutex for multithreading
@@ -63,17 +57,6 @@ void ps_framework::PSQuicksort<T>::swap(int i, int j) {
     (*arr)[i] = (*arr)[j];
     (*arr)[j] = tmp;
 }
-
-
-//template <typename T>
-//ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::cmp(ComparisonResolver<T> * cv, T elm, T pivot, int *pi, int j) {
-//    auto res = co_await cv->compare(elm, pivot);
-//    if (res == LessThan) {
-//        (*pi)++;
-//        swap((*pi), j);
-//    }
-//    co_return;
-//}
 
 template <typename T>
 ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::partition(int low, int high, int *retval){
@@ -95,8 +78,6 @@ ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::partition(int low, int 
                 }(comparisonResolver, ((*arr)[j]), pivot, &i, j, this)
             )
         );
-//        auto cmpTask = new coroTaskVoid(cmp(comparisonResolver, ((*arr)[j]), pivot, &i, j));
-//        co_await scheduler->spawnDependent(cmpTask);
     }
     co_await std::suspend_always();
 
