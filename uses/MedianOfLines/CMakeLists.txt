@@ -13,5 +13,5 @@ add_executable(medianOfLines medianOfLines.cpp)
 
 target_link_libraries(Scheduler CoTask)
 target_link_libraries(ComparisonResolver Scheduler CoTask)
-target_link_libraries(psQuicksort ComparisonResolver Scheduler CoTask)
+target_link_libraries(PSQuicksort ComparisonResolver Scheduler CoTask)
 target_link_libraries(medianOfLines linearfunctions CoTask ComparisonResolver Scheduler)

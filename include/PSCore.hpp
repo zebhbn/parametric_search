@@ -17,10 +17,10 @@ namespace ps_framework {
         void runCompareList(std::vector<ps_framework::CmpCvResult> *);
         double start;
         double end;
-    private:
-        ISeqAlgo *seqAlgo;
         bool isInInterval(double);
         CmpRes compareToLambdaStar(double);
+    private:
+        ISeqAlgo *seqAlgo;
         void binarySearch(std::vector<ps_framework::CmpCvResult> *);
     };
 }

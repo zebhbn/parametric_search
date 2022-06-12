@@ -211,41 +211,36 @@
 //    return psCore.end;
 //}
 
-#define genGraph() generateSmallGraphOpt()
-
 void test() {
-    {
-        auto mat = genGraph();
-        auto u = genGraph();
-        std::cout << "Normal version : n=" << u->size() <<  std::endl;
-        auto floyd = PSFloyd(mat, u);
-        floyd.run();
-    }
-    {
-        int numThreads = 1;
-        auto mat = genGraph();
-        auto u = genGraph();
-        std::cout << "Multi threaded version : n=" << u->size() << " : " << numThreads << " threads" << std::endl;
-        auto floyd = MultiPSFloyd(mat, u);
-        floyd.numThreads = numThreads;
-        floyd.run();
-    }
-//    {
-//        int numThreads = 1;
-//        auto mat = genGraph();
-//        auto u = genGraph();
-//        std::cout << "Improved multi threaded version : n=" << u->size() << " : " << numThreads << " threads" << std::endl;
-//        auto floyd = ImprovedMultiPSFloyd(mat, u);
+//    auto graphVectorMat = genAllGraphs();
+//    auto graphVectorU = genAllGraphs();
+    auto graph = generateSimpleGraph();
+    auto graph2 = generateSimpleGraph();
+    auto floyd = PSFloyd(graph, graph2);
+    std::cout << "Normal version : n=" << graph->size() <<  std::endl;
+    floyd.run();
+//    while (!graphVectorMat->empty()) {
+//        auto mat = graphVectorMat->front();
+//        auto u = graphVectorU->front();
+//        auto mat = graphVectorMat;
+//        auto u = graphVectorU;
+//        std::cout << "Normal version : n=" << graphVectorU->front()->size() <<  std::endl;
+//        auto floyd = PSFloyd(mat, u);
+//        floyd.run();
+
+//        int numThreads = 8;
+//        std::cout << "Multi threaded naive version : n=" << u->size() << " : " << numThreads << " threads" << std::endl;
+//        auto floyd = MultiPSFloyd(mat, u);
 //        floyd.numThreads = numThreads;
 //        floyd.run();
+
+//        graphVectorMat->pop();
+//        graphVectorU->pop();
 //    }
 }
 
 int main(){
     test();
-//    auto lambda = approach();
-//    std::cout << "approach lambda* = " << lambda << std::endl;
-//    std::cout << "5/7 = " << 5.0/7.0 << std::endl;
     exit(0);
 }
 

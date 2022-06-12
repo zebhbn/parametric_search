@@ -3,6 +3,7 @@
 #include "Scheduler.hpp"
 #include "ComparisonResolver.hpp"
 #include <vector>
+#include <ctime>
 
 #ifndef PS_QUICKSORT
 #define PS_QUICKSORT
@@ -24,6 +25,7 @@ namespace ps_framework {
 
     protected:
         coroTaskVoid partition(int, int, int*);
+        coroTaskVoid randomPartition(int, int, int*);
         coroTaskVoid quicksort(int, int);
         virtual void swap(int, int);
 //        coroTaskVoid cmp(ComparisonResolver<T> * cv, T elm, T pivot, int *pi, int j);
@@ -103,12 +105,32 @@ ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::partition(int low, int 
     co_return;
 };
 
+// Based on https://www.geeksforgeeks.org/quicksort-using-random-pivoting/
+template<typename T>
+ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::randomPartition(int low, int high, int *retval) {
+    // Use time as seed to random number generator
+    std::srand((unsigned) time(0));
+    // Generate random number
+    int randomNum = low + rand() % (high - low);
+    // Swap random with high
+    swap(randomNum, high);
+    // Create the partition task
+    auto partitionTask = new coroTaskVoid(partition(low,high,retval));
+    // Spawn partition task
+    co_await scheduler->spawnDependent(partitionTask);
+    // Wait for partition task to finish
+    co_await std::suspend_always();
+    // Return
+    co_return;
+}
+
+
 template <typename T>
 ps_framework::coroTaskVoid ps_framework::PSQuicksort<T>::quicksort(int low, int high){
     if (low < high) {
         int pivot;
         // Create the partition task
-        auto partitionTask = new coroTaskVoid(partition(low,high,&pivot));
+        auto partitionTask = new coroTaskVoid(randomPartition(low,high,&pivot));
         // Spawn partition task
         co_await scheduler->spawnDependent(partitionTask);
         // Wait for partition task to finish

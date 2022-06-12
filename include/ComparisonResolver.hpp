@@ -18,38 +18,53 @@
 //using IdType = int;
 
 namespace ps_framework {
+    struct await_data {
+        IdType id;
+        CmpRes cResult;
+    };
     template <typename T>
     class ComparisonResolver{
     public:
         ComparisonResolver(Scheduler *s1, IPSCore *p1, IComparer<T> *ic1);
         coroTaskVoid resolveComparisons();
-        auto compare(T t1, T t2) {
-            auto id = setCmpAndGetId(t1, t2);
-            return comparerAwaitable{id, this};
-        };
         struct comparerAwaitable {
             IdType cmpId;
             ComparisonResolver<T> *comparisonResolver;
+            CmpRes directRes;
 //            T t1;
 //            T t2;
             bool await_ready() { return false; }
-            void await_suspend(std::coroutine_handle<promise_type_void> h) {
-                // Set transferred flag to true
-                // TODO: flag should also be cleared again
-                h.promise().transferred = true;
-                // Spawn handler in scheduler
-                // (these should only run when resolveComparison has run one iteration)
+            bool await_suspend(std::coroutine_handle<promise_type_void> h) {
+                if (directRes == Unresolved) {
+                    // Set transferred flag to true
+                    // TODO: flag should also be cleared again
+                    h.promise().transferred = true;
+                    // Spawn handler in scheduler
+                    // (these should only run when resolveComparison has run one iteration)
 //                std::cout<<"Spawning Handler"<<std::endl;
-                comparisonResolver->scheduler->spawnHandler(&h);
-                // Check if we need to spawn the resolveComparisons coroutine
-                comparisonResolver->spawnMe();
-
+                    comparisonResolver->scheduler->spawnHandler(&h);
+                    // Check if we need to spawn the resolveComparisons coroutine
+                    comparisonResolver->spawnMe();
+                    return true;
+                }
+                return false;
             }
             CmpRes await_resume() {
-                auto tmp = comparisonResolver->getRes(cmpId);
-                comparisonResolver->clearUpCmp(cmpId);
-                return tmp;
+                if (directRes == Unresolved) {
+                    auto tmp = comparisonResolver->getRes(cmpId);
+                    comparisonResolver->clearUpCmp(cmpId);
+                    return tmp;
+                }
+                return directRes;
             }
+        };
+        virtual await_data preCompare(T t1, T t2) {
+            auto id = setCmpAndGetId(t1, t2);
+            return await_data{id, Unresolved};
+        }
+        virtual comparerAwaitable compare(T t1, T t2) {
+            auto data = preCompare(t1, t2);
+            return comparerAwaitable{data.id, this, data.cResult};
         };
     protected:
         virtual IdType getNewId();
@@ -118,6 +133,11 @@ ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::computeCriticalV
 //    std::cout<<"Doing job"<<std::endl;
     // Compute critical value
     double cv = iComparer->getCriticalValue(t1, t2);
+//    if ((cv > 0.714) && (cv < 0.715)) {
+//        std::cout<<"bob"<<std::endl;
+//        std::cout<<t1<<std::endl;
+//        std::cout<<t2<<std::endl;
+//    }
     if (std::isnan(cv)) {
         setRes(id, iComparer->getCompareResult(t1,t2,Unresolved));
     }

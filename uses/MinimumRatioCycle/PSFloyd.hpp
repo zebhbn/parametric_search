@@ -5,6 +5,7 @@
 #include "CoTask.hpp"
 #include "Scheduler.hpp"
 #include "ComparisonResolver.hpp"
+#include "DirectComparisonResolver.hpp"
 #include <optional>
 #include "LinearFunction.hpp"
 #include "MultiTScheduler.hpp"
@@ -22,9 +23,11 @@ class SeqAlgoMinimumRatioCycle : public ps_framework::ISeqAlgo{
 public:
     SeqAlgoMinimumRatioCycle(std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> *fs){
         p_funcs = fs;
+//        counter = 0;
     }
 
     ps_framework::CmpRes compare(double lambda){
+//        counter++;
         int n = p_funcs->size();
         std::vector<std::vector<double>> dist(n, std::vector<double> (n, std::numeric_limits<double>::infinity()));
         // Set the edge values in the dist matrix
@@ -84,7 +87,7 @@ public:
         // lambda is too small
         return ps_framework::LessThan;
     }
-
+    int counter;
 private:
     std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> *p_funcs;
 };
@@ -119,13 +122,19 @@ public:
                   << std::endl
                   << "    time    = "
                   << duration
+//                  << "  sequAlgo  = "
+//                  << seqAlgo.counter
                   << std::endl;
     }
     std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * mat;
     std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * u;
     std::mutex setMutex;
     std::condition_variable setCV;
-    void setValue(auto u, auto i, auto j, std::optional<ps_framework::LinearFunction> elm) {
+
+    virtual void setValue(std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * u,
+                          int i,
+                          int j,
+                          std::optional<ps_framework::LinearFunction> elm) {
         (*u)[i][j] = elm;
     }
 
@@ -145,12 +154,13 @@ public:
         }
     }
 
-    ps_framework::coroTaskVoid psFloyd(
-            auto n,
-            auto u,
+    virtual ps_framework::coroTaskVoid psFloyd(
+            int n,
+            std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> *u,
             ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cR,
             ps_framework::Scheduler *scheduler1
     ) {
+//        std::cout<<"Starting ps floyd task"<<std::endl;
         for (int m = 0; m<n; m++){
             for (int i = 0; i<n; i++){
                 for (int j = 0; j<n; j++){
@@ -170,10 +180,49 @@ public:
                         auto task = new ps_framework::coroTaskVoid(setMin(cR, u, i, j, m, uplus, uij));
 //                    std::cout<<"Spawning task"<<std::endl;
                         co_await scheduler1->spawnDependent(task);
+                        co_await std::suspend_always();
                     }
                 }
             }
-            co_await std::suspend_always();
+//            co_await std::suspend_always();
+        }
+//        std::cout<<"Finished ps floyd task"<<std::endl;
+        co_return;
+    }
+};
+
+
+class NaivePSFloyd : public PSFloyd {
+
+public:
+    NaivePSFloyd(auto mat, auto u) : PSFloyd(mat,u) {}
+    ps_framework::coroTaskVoid psFloyd(
+            auto n,
+            auto u,
+            ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cR,
+            ps_framework::Scheduler *scheduler1
+    ) {
+        for (int m = 0; m<n; m++){
+            for (int i = 0; i<n; i++){
+                for (int j = 0; j<n; j++){
+                    auto uij = (*u)[i][j];
+                    auto uim = (*u)[i][m];
+                    auto umj = (*u)[m][j];
+                    if((!uim)||(!umj)){
+                        continue;
+                    }
+                    else if (!uij){
+                        setValue(u,i,j,{uim.value()+umj.value()});
+                    }
+                    else {
+                        auto uplus = (uim.value()+umj.value());
+                        auto task = new ps_framework::coroTaskVoid(setMin(cR, u, i, j, m, uplus, uij));
+                        co_await scheduler1->spawnDependent(task);
+                        co_await std::suspend_always();
+                    }
+                }
+            }
+//            co_await std::suspend_always();
         }
         co_return;
     }
@@ -182,10 +231,14 @@ public:
 class MultiPSFloyd : public PSFloyd {
 public:
     MultiPSFloyd(auto mat, auto u) : PSFloyd(mat,u) {}
-    int numThreads = 0;
+    int numThreads = 1;
 
-    void setValue(auto u, auto i, auto j, std::optional<ps_framework::LinearFunction> elm) {
+    virtual void setValue(std::vector<std::vector<std::optional<ps_framework::LinearFunction>>> * u,
+                          int i,
+                          int j,
+                          std::optional<ps_framework::LinearFunction> elm) override {
         // Lock or wait
+//        std::cout<<"Setting value"<<std::endl;
         std::unique_lock lock(setMutex);
         setCV.wait(lock, []{return true;});
         // Set value
@@ -196,14 +249,15 @@ public:
     }
 
     void run(){
+//        std::cout<<"Bob"<<std::endl;
         auto seqAlgo = SeqAlgoMinimumRatioCycle(mat);
         auto psCore = ps_framework::PSCore(&seqAlgo);
         auto linComparer = ps_framework::LinearFunctionComparer();
-        ps_framework::MultiTScheduler scheduler;
-        if (numThreads)
-            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler(numThreads);
-        else
-            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler();
+        ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler(numThreads);
+//        if (numThreads)
+//            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler(numThreads);
+//        else
+//            ps_framework::MultiTScheduler scheduler = ps_framework::MultiTScheduler();
 
         auto comparisonResolver = ps_framework::MultiTComparisonResolver<ps_framework::LinearFunction>(
                 &scheduler,
@@ -225,49 +279,5 @@ public:
                   << std::endl;
     }
 };
-
-class ImprovedMultiPSFloyd : public MultiPSFloyd {
-public:
-    ImprovedMultiPSFloyd(auto mat, auto u) : MultiPSFloyd(mat,u) {}
-protected:
-    ps_framework::coroTaskVoid psFloyd(
-            auto n,
-            auto u,
-            ps_framework::ComparisonResolver<ps_framework::LinearFunction> *cR,
-            ps_framework::Scheduler *scheduler1
-    ) {
-        for (int m = 0; m<n; m++){
-            for (int i = 0; i<n; i++) {
-                scheduler1->spawnDependent(
-                        new ps_framework::coroTaskVoid(
-                                [](auto u, auto i, auto n, auto m, auto me, auto cR, auto scheduler1) -> auto {
-                                    for (int j = 0; j < n; j++) {
-                                        auto uij = (*u)[i][j];
-                                        auto uim = (*u)[i][m];
-                                        auto umj = (*u)[m][j];
-                                        if ((!uim) || (!umj)) {
-                                            continue;
-                                        } else if (!uij) {
-//                    (*u)[i][j] = {uim.value()+umj.value()};
-                                            me->setValue(u, i, j, {uim.value() + umj.value()});
-                                        } else {
-                                            auto uplus = (uim.value() + umj.value());
-                                            //                    imp_scheduler.addComparison(&uij.value(), &uplus, &cmp_res[i][j]);
-                                            auto task = new ps_framework::coroTaskVoid(
-                                                    me->setMin(cR, u, i, j, m, uplus, uij));
-//                    std::cout<<"Spawning task"<<std::endl;
-                                            co_await scheduler1->spawnDependent(task);
-                                        }
-                                    }
-                                }(u, i, n, m, this, cR, scheduler1)
-                        )
-                );
-            }
-            co_await std::suspend_always();
-        }
-        co_return;
-    }
-};
-
 
 #endif //MINIMUMMEANCYCLE_PSFLOYD_HPP
