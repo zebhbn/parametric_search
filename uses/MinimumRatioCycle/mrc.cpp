@@ -21,21 +21,21 @@ void test() {
 //    auto graphVectorU = genAllGraphs();
     auto graph = generateSimpleGraph();
     auto graph2 = generateSimpleGraph();
-    auto floyd = MultiPSFloyd(graph, graph2);
+    auto floyd = PSFloyd(graph, graph2);
     std::cout << "Normal version : n=" << graph->size() <<  std::endl;
-    floyd.numThreads = 8;
     floyd.run();
 //    while (!graphVectorMat->empty()) {
 //        auto mat = graphVectorMat->front();
 //        auto u = graphVectorU->front();
-//        auto mat = graphVectorMat;
-//        auto u = graphVectorU;
+
+        // Normal version
 //        std::cout << "Normal version : n=" << graphVectorU->front()->size() <<  std::endl;
 //        auto floyd = PSFloyd(mat, u);
 //        floyd.run();
 
+        // Multithreaded version
 //        int numThreads = 8;
-//        std::cout << "Multi threaded naive version : n=" << u->size() << " : " << numThreads << " threads" << std::endl;
+//        std::cout << "Multi threaded improved version : n=" << u->size() << " : " << numThreads << " threads" << std::endl;
 //        auto floyd = MultiPSFloyd(mat, u);
 //        floyd.numThreads = numThreads;
 //        floyd.run();
