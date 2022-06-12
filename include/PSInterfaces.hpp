@@ -27,6 +27,10 @@ namespace ps_framework {
     class IPSCore {
     public:
         virtual void runCompareList(std::vector<CmpCvResult>*) = 0;
+        double start;
+        double end;
+//        virtual bool isInInterval(double) = 0;
+//        virtual CmpRes compareToLambdaStar(double) = 0;
     };
 
 }

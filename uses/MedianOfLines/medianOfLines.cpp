@@ -8,6 +8,10 @@
 #include "PSCore.hpp"
 #include "PSQuicksort.hpp"
 #include "LinearFunction.hpp"
+#include <chrono>
+#include <cmath>
+
+
 
 class SeqAlgoMedianLines : public ps_framework::ISeqAlgo {
 public:
@@ -21,7 +25,7 @@ public:
         for (int i = 0; i<n;i++)
             vals[i] = (*p_funcs)[i].compute(lambda);
         // Get median and return sign of result
-        sort(vals.begin(),vals.end());
+        std::nth_element(vals.begin(), vals.begin() + (n/2),vals.end());
         double median = vals[n/2];
         if(median==0){
             return ps_framework::EqualTo;
@@ -59,20 +63,35 @@ double psVersion(int numLines) {
             &psCore,
             &linComparer);
     auto quickSort = ps_framework::PSQuicksort<ps_framework::LinearFunction>(&scheduler, &comparisonResolver, &lines);
-    std::cout<<"Running quicksort"<<std::endl;
+
+    std::cout<<"Running quicksort with n = "<<number_of_lines<<std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     quickSort.sort();
     ps_framework::LinearFunction median = lines[number_of_lines/2];
+
+
+    // Run and measure time
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+    auto res = seqAlgo.compare(median.getRoot());
+
+    std::cout << "    lambda* = "
+              << (median.getRoot())
+              << std::endl
+              << "    time    = "
+              << duration
+              << std::endl;
+
     return median.getRoot();
 }
 
 int main(){
     int numLines = 101;
+//    for (int i = 7; i < 17; i++) {
+//        psVersion(std::pow(2,i));
+//    }
     double lambda_star = psVersion(numLines);
-//    double lambda_star_multi = psMultiThreadVersion(numLines);
-//    double test_lambda_star = nonPsVersion(numLines);
-    // Output result
-    std::cout << "lambda* = " << lambda_star << std::endl;
-//    std::cout << "multilambda* = " << lambda_star_multi << std::endl;
-//    std::cout << "real lambda* = " << test_lambda_star << std::endl;
     return 0;
 }

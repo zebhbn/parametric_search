@@ -35,6 +35,10 @@ namespace ps_framework {
         bool operator== (const LinearFunction& func){
             return ((this->a==func.a)&&(this->b==func.b));
         };
+        // String representation
+        friend std::ostream& operator<<(std::ostream &s, const LinearFunction &point) {
+            return s << "(" << point.a << "*x, " << point.b << ")";
+        }
         // Copy constructor
         LinearFunction(const LinearFunction& fn)
         {

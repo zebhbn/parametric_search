@@ -18,9 +18,9 @@ namespace ps_framework {
         double start;
         double end;
     private:
-        ISeqAlgo *seqAlgo;
         bool isInInterval(double);
         CmpRes compareToLambdaStar(double);
+        ISeqAlgo *seqAlgo;
         void binarySearch(std::vector<ps_framework::CmpCvResult> *);
     };
 }
@@ -73,9 +73,6 @@ void ps_framework::PSCore::binarySearch(std::vector<ps_framework::CmpCvResult> *
         if ((m == e) || (m == f)){
             break;
         }
-        // Sort just enough to find median
-//        std::nth_element(vec->begin()+e, vec->begin()+m, vec->begin()+f,
-//                         [this](auto e1, auto e2){ return e1.criticalValue<e2.criticalValue; });
         // Get median
         auto mElm = (*vec)[m];
 

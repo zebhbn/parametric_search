@@ -14,14 +14,9 @@ namespace ps_framework {
         coroTaskVoid (std::coroutine_handle<promise_type_void> handle)
                 : handle_(std::move(handle)) {}
 
-        ~coroTaskVoid() {
-//            if (handle_){
-//                handle_.destroy();
-//            }
-        }
+        ~coroTaskVoid() {}
 
-        void destroyMe() {
-//            std::cout<<"Coroutine destroyed"<<std::endl;
+        void destroyHandler() {
             if (handle_){
                 handle_.destroy();
             }
@@ -35,6 +30,7 @@ namespace ps_framework {
         bool done() const noexcept {
             return handle_.done();
         }
+
 
         std::coroutine_handle<promise_type_void> handle_{nullptr};
     };
@@ -64,7 +60,6 @@ namespace ps_framework {
         int parentId = -1;
         bool transferred = false;
     };
-
 
 }
 

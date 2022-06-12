@@ -17,32 +17,37 @@ namespace ps_framework {
         struct schedulerAwaitable{
             Scheduler* scheduler;
             coroTaskVoid *dependentTask;
+            coroTaskVoid *spawnJob;
             bool await_ready() { return false; }
             bool await_suspend(std::coroutine_handle<promise_type_void> h) {
                 // Increment id dependent counter
-                scheduler->idCounter[h.promise().id]++;
+                scheduler->incrementId(h.promise().id);
                 dependentTask->handle_.promise().parentId = h.promise().id;
+                // Run spawning task (so that we first spawn after everything has been set)
+                if (spawnJob) {
+                    spawnJob->resume();
+                    spawnJob->destroyHandler();
+                    delete spawnJob;
+                }
                 // Resume the current coroutine
                 return false;
             }
             void await_resume() {return;}
         };
-        void run();
-        void spawnIndependent(coroTaskVoid *task);
-        void spawnIndependentIntermediate(coroTaskVoid *task);
-        schedulerAwaitable spawnDependent(coroTaskVoid *task);
-        schedulerAwaitable spawnDependentIntermediate(coroTaskVoid *task);
-        void spawnHandler(std::coroutine_handle<promise_type_void> *handler);
-//        void spawnHandler(void* coroPointer);
+        virtual void run();
+        virtual void spawnIndependent(coroTaskVoid *task);
+        virtual void spawnIndependentIntermediate(coroTaskVoid *task);
+        virtual schedulerAwaitable spawnDependent(coroTaskVoid *task);
+        virtual schedulerAwaitable spawnDependentIntermediate(coroTaskVoid *task);
+        virtual void spawnHandler(std::coroutine_handle<promise_type_void> *handler);
 
 
-    private:
+    protected:
         std::map<int, int> idCounter;
         std::queue<coroTaskVoid*> activeTasks;
         std::map<int, coroTaskVoid*> pendingTasks;
         std::queue<coroTaskVoid*> activeIntermediateTasks;
         std::map<int, coroTaskVoid*> pendingIntermediateTasks;
-//        std::queue<std::coroutine_handle<promise_type_void>*> handleTasks;
         std::queue<void*> handleTaskAddrs;
         std::atomic_int atomicId;
         int getNewId();
@@ -50,9 +55,15 @@ namespace ps_framework {
         void runActiveTasks();
         void runActiveIntermediateTasks();
         void runHandlers();
+        void incrementId(int id);
     };
 
 }
+
+void ps_framework::Scheduler::incrementId(int id) {
+    idCounter[id]++;
+}
+
 
 int ps_framework::Scheduler::getNewId() {
     return ++atomicId;
@@ -89,7 +100,7 @@ ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDepend
     // Push to active tasks
     activeIntermediateTasks.push(task);
     // Return awaitable
-    return schedulerAwaitable{this, task};
+    return schedulerAwaitable{this, task, nullptr};
 };
 
 ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDependent(coroTaskVoid *task) {
@@ -99,26 +110,23 @@ ps_framework::Scheduler::schedulerAwaitable ps_framework::Scheduler::spawnDepend
     // Push to active tasks
     activeTasks.push(task);
     // Return awaitable
-    return schedulerAwaitable{this, task};
+    return schedulerAwaitable{this, task, nullptr};
 };
 
 void ps_framework::Scheduler::spawnHandler(std::coroutine_handle<promise_type_void> *handler) {
-//void ps_framework::Scheduler::spawnHandler(void *coroPointer) {
     // Push handler to handle queue
     handleTaskAddrs.push(handler->address());
 }
+
 
 void ps_framework::Scheduler::runActiveTasks() {
     while (!activeTasks.empty()){
         // Print queue status
         auto tmp = activeTasks;
-//        while (!tmp.empty()) {
-//            std::cout<<"    ID: "<<tmp.front()->handle_.promise().id<<std::endl;
-//            tmp.pop();
-//        }
         // Run task
         activeTasks.front()->resume();
         if (activeTasks.front()->handle_.promise().transferred) {
+            delete activeTasks.front();
             activeTasks.pop();
             continue;
         }
@@ -148,7 +156,8 @@ void ps_framework::Scheduler::runActiveTasks() {
                 }
             }
             // The task is done so we will destroy it
-            activeTasks.front()->destroyMe();
+            activeTasks.front()->destroyHandler();
+//            delete activeTasks.front();
         }
         // Remove from queue
         activeTasks.pop();
@@ -187,7 +196,8 @@ void ps_framework::Scheduler::runActiveIntermediateTasks() {
                 }
             }
             // The task is done so we will destroy it
-            activeIntermediateTasks.front()->destroyMe();
+            activeIntermediateTasks.front()->destroyHandler();
+            delete activeIntermediateTasks.front();
         }
         // Remove from queue
         activeIntermediateTasks.pop();
@@ -196,11 +206,9 @@ void ps_framework::Scheduler::runActiveIntermediateTasks() {
 
 
 void ps_framework::Scheduler::runHandlers() {
-//    std::cout<<"Running handlers, size of queue: "<<handleTasks.size()<<std::endl;
     while (!handleTaskAddrs.empty()) {
         // Run task
         auto handler = std::coroutine_handle<promise_type_void>::from_address(handleTaskAddrs.front());
-//        std::cout << "Running handler with ID: " << handler.promise().id << std::endl;
 
         handler.resume();
         auto parentId = handler.promise().parentId;
@@ -223,20 +231,14 @@ void ps_framework::Scheduler::runHandlers() {
 
 
 void ps_framework::Scheduler::run(){
-//    while ((!activeTasks.empty()) || (!activeIntermediateTasks.empty()) || (!handleTasks.empty()) ) {
     while ((!activeTasks.empty()) || (!activeIntermediateTasks.empty()) || (!handleTaskAddrs.empty()) ) {
         // Run active tasks
         runActiveTasks();
-//        std::cout<<"Finished active tasks"<<std::endl;
         // Run intermediate tasks
         runActiveIntermediateTasks();
-//        std::cout<<"Finished intermediate tasks"<<std::endl;
         // Run handlers
         runHandlers();
-//        std::cout<<"Finished handler tasks"<<std::endl;
 //
-//        std::cout<<"Pending queue size: "<<pendingTasks.size()<<std::endl;
-//        std::cout<<"Pending inter queue size: "<<pendingIntermediateTasks.size()<<std::endl;
     }
 }
 

@@ -13,54 +13,62 @@
 
 #ifndef TEST_COMPARISONRESOLVER_HPP
 #define TEST_COMPARISONRESOLVER_HPP
-//using IdType = std::atomic_uint64_t;
-
-//using IdType = int;
 
 namespace ps_framework {
+    struct await_data {
+        IdType id;
+        CmpRes cResult;
+    };
     template <typename T>
     class ComparisonResolver{
     public:
         ComparisonResolver(Scheduler *s1, IPSCore *p1, IComparer<T> *ic1);
         coroTaskVoid resolveComparisons();
-        auto compare(T t1, T t2) {
-            auto id = setCmpAndGetId(t1, t2);
-            return comparerAwaitable{id, this};
-        };
         struct comparerAwaitable {
             IdType cmpId;
             ComparisonResolver<T> *comparisonResolver;
-//            T t1;
-//            T t2;
+            CmpRes directRes;
             bool await_ready() { return false; }
-            void await_suspend(std::coroutine_handle<promise_type_void> h) {
-                // Set transferred flag to true
-                // TODO: flag should also be cleared again
-                h.promise().transferred = true;
-                // Spawn handler in scheduler
-                // (these should only run when resolveComparison has run one iteration)
-                comparisonResolver->scheduler->spawnHandler(&h);
-                // Check if we need to spawn the resolveComparisons coroutine
-                if (!comparisonResolver->isResolveComparisonsSpawned) {
-                    auto task = new coroTaskVoid(comparisonResolver->resolveComparisons());
-                    comparisonResolver->scheduler->spawnIndependentIntermediate(task);
-                    comparisonResolver->isResolveComparisonsSpawned = true;
+            bool await_suspend(std::coroutine_handle<promise_type_void> h) {
+                if (directRes == Unresolved) {
+                    // Set transferred flag to true
+                    // TODO: flag should also be cleared again
+                    h.promise().transferred = true;
+                    // Spawn handler in scheduler
+                    // (these should only run when resolveComparison has run one iteration)
+                    comparisonResolver->scheduler->spawnHandler(&h);
+                    // Check if we need to spawn the resolveComparisons coroutine
+                    comparisonResolver->spawnMe();
+                    return true;
                 }
-
+                return false;
             }
             CmpRes await_resume() {
-                auto tmp = comparisonResolver->getRes(cmpId);
-                comparisonResolver->clearUpCmp(cmpId);
-                return tmp;
+                if (directRes == Unresolved) {
+                    auto tmp = comparisonResolver->getRes(cmpId);
+                    comparisonResolver->clearUpCmp(cmpId);
+                    return tmp;
+                }
+                return directRes;
             }
         };
-    private:
-        auto getNewId();
-        IdType setCmpAndGetId(T t1, T t2);
-        CmpRes getRes(IdType id);
-        void setRes(IdType id, CmpRes);
-        void clearUpCmp(IdType id);
-        coroTaskVoid computeCriticalValue(T t1, T t2, int id);
+        virtual await_data preCompare(T t1, T t2) {
+            auto id = setCmpAndGetId(t1, t2);
+            return await_data{id, Unresolved};
+        }
+        virtual comparerAwaitable compare(T t1, T t2) {
+            auto data = preCompare(t1, t2);
+            return comparerAwaitable{data.id, this, data.cResult};
+        };
+    protected:
+        virtual IdType getNewId();
+        virtual IdType setCmpAndGetId(T t1, T t2);
+        virtual CmpRes getRes(IdType id);
+        virtual void setRes(IdType id, CmpRes);
+        virtual void clearUpCmp(IdType id);
+        virtual void spawnMe();
+        virtual void resetIsSpawned();
+        virtual coroTaskVoid computeCriticalValue(T t1, T t2, int id);
         std::map<IdType, double> criticalValueMap;
         std::map<IdType, std::pair<T,T>> comparisonMap;
         std::map<IdType, CmpRes> resMap;
@@ -76,7 +84,21 @@ namespace ps_framework {
 }
 
 template <typename T>
-auto ps_framework::ComparisonResolver<T>::getNewId() {
+void ps_framework::ComparisonResolver<T>::spawnMe() {
+    if (!isResolveComparisonsSpawned) {
+        auto task = new coroTaskVoid(resolveComparisons());
+        scheduler->spawnIndependentIntermediate(task);
+        isResolveComparisonsSpawned = true;
+    }
+}
+
+template <typename T>
+void ps_framework::ComparisonResolver<T>::resetIsSpawned() {
+    isResolveComparisonsSpawned = false;
+}
+
+template <typename T>
+ps_framework::IdType ps_framework::ComparisonResolver<T>::getNewId() {
     return ++idCounter;;
 }
 
@@ -86,7 +108,7 @@ ps_framework::ComparisonResolver<T>::ComparisonResolver(ps_framework::Scheduler 
     scheduler = s1;
     psCore = p1;
     iComparer = ic1;
-    isResolveComparisonsSpawned = false;
+    resetIsSpawned();
 };
 
 template <typename T>
@@ -150,7 +172,7 @@ ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::resolveCompariso
     // Generate coroutines for computation of critical values
     for (auto const& [id, val] : comparisonMap) {
         auto task = new coroTaskVoid(computeCriticalValue(val.first, val.second, id));
-        scheduler->spawnDependentIntermediate(task);
+        co_await scheduler->spawnDependentIntermediate(task);
     }
     //  Suspend if necessary
     if (comparisonMap.size() > 0) {
@@ -172,7 +194,7 @@ ps_framework::coroTaskVoid ps_framework::ComparisonResolver<T>::resolveCompariso
         setRes(cmpRes.index, res);
     }
     // Reset spawn flag
-    isResolveComparisonsSpawned = false;
+    resetIsSpawned();
     // Set the actual comparison results into vector
     co_return;
 }
