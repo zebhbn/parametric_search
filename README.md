@@ -17,3 +17,7 @@ Follow the steps to compile and run the examples.
 3. Run `make`
 4. Finally execute `./mrc` 
 
+## Structure
+The `include` directory holds all the files related to the framework.
+The `uses` directory holds two examples of implementations using the framework.
+
